@@ -18,7 +18,7 @@ namespace Application.Interfaces
         bool CheckDuplicated(Asset Node);
         int TotalAsset(Asset Node);
         Task ReplaceTree(Asset newRoot);
-        int MergeTree(Asset AddtionalNode);
+        Task<int> MergeTree(Asset AddtionalNode);
         int TreeLength(Asset Node);
     }
 }

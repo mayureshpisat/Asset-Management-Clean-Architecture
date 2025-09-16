@@ -32,6 +32,8 @@ namespace Application.Interfaces
         Task TruncateAssetsAsync();
         Task DeleteAllAssetsAsync();
         Task ReseedAssetsIdentityAsync();
+
+        int GetAssetCount();
     }
 
 }

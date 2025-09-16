@@ -1,17 +1,15 @@
-﻿using Application.Interfaces;
-using Asset_Management.Database;
-using Application.DTO;
-using Asset_Management.Hubs;
-using Domain.Entities;
-using Asset_Management.Utils;
+﻿using Application.DTO;
+using Application.Interfaces;
 using Domain.Entities;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
+using System;
+using System.Runtime.CompilerServices;
 using System.Security.Claims;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 
 namespace Application.Services
 {
@@ -29,20 +27,16 @@ namespace Application.Services
     public class DbAssetHierarchyService : IAssetHierarchyService
     {
         private readonly IAssetRepository _assetRepository;
-        private readonly AssetDbContext _dbContext;
         private readonly IAssetStorageService _storage;
         public static List<Asset> assetsAdded = new List<Asset>();
         public readonly IAssetLogService _logService;
-        private readonly IHubContext<NotificationHub> _hubContext;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly INotificationService _notificationService;
 
-        public DbAssetHierarchyService(AssetDbContext dbContext, IAssetStorageService storage, IAssetLogService logService, IHubContext<NotificationHub> hubContext, IHttpContextAccessor httpContextAccessor, INotificationService notificationService, IAssetRepository assetRepository)
+        public DbAssetHierarchyService(INotificationService notificationService, IAssetStorageService storage, IAssetLogService logService,  IHttpContextAccessor httpContextAccessor, IAssetRepository assetRepository)
         {
-            _dbContext = dbContext;
             _storage = storage;
             _logService = logService;
-            _hubContext = hubContext;
             _httpContextAccessor = httpContextAccessor;
             _notificationService = notificationService;
             _assetRepository = assetRepository;
@@ -122,7 +116,7 @@ namespace Application.Services
         }
 
 
-        private void SaveHierarchyVersion(string? action = null)
+        private async Task SaveHierarchyVersion(string? action = null)
         {
             if (string.IsNullOrWhiteSpace(action))
                 action = "None";
@@ -130,19 +124,10 @@ namespace Application.Services
             //in memory objects reflect db state
             //saving in file for downloading and tracking purpose.
             //recursivley load children in root to represent deep hierarchy
-            var root = _dbContext.Assets.FirstOrDefault(a => a.ParentId == null);
-            LoadChildren(root);
+            var root = await _assetRepository.GetRootWithChildrenAsync();
             _storage.SaveTree(root, action);
         }
-        private void LoadChildren(Asset parent)
-        {
-            _dbContext.Entry(parent).Collection(p => p.Children).Load();
-            _dbContext.Entry(parent).Collection(p => p.Signals).Load();
-            foreach (var child in parent.Children)
-            {
-                LoadChildren(child);
-            }
-        }
+        
 
         public async Task<bool> AddNode(int parentId, Asset newNode)
         {
@@ -162,25 +147,13 @@ namespace Application.Services
             string action = "Asset Add";
             parent.Children.Add(newNode);
             await _assetRepository.SaveChangesAsync();
-            SaveHierarchyVersion(action);
+
+            //save hierarchy
+            await SaveHierarchyVersion(action);
             await _logService.Log(action, asset: newNode.Name);
 
             var currentUserId = GetCurrentUserID();
-            List<string> connectionIds = NotificationHub.GetConnections(currentUserId);
-            await _hubContext.Clients.GroupExcept("Role_Admin", connectionIds).SendAsync("RecieveAssetNotification", new
-            {
-                Type = "AssetAdded",
-                User = GetCurrentUser(),
-                Name = $"{newNode.Name}",
-
-            });
-            await _hubContext.Clients.Group("Role_Viewer").SendAsync("RecieveAssetNotification", new
-            {
-                Type = "AssetAdded",
-                User = "Admin",
-                Name = $"{newNode.Name}",
-            });
-
+            
 
 
             string notificationMessage = $"sjdf;lskjsdkjkfljl;sdjf;lsdjflasdmfldsjflskdfndsl;fkjsdlfkjsflksdjfsd;lsdnfsdnfdsnf{GetCurrentUser()} added new asset {newNode.Name}";
@@ -192,6 +165,7 @@ namespace Application.Services
         }
         public async Task ReorderNode(int assetId, int parentId)
         {
+            string action = "Reorder Asset";
             try
             {
                 var parent = await _assetRepository.GetAssetByIdAsync(parentId);
@@ -218,6 +192,8 @@ namespace Application.Services
                 asset.ParentId = parentId;
                 asset.Parent = parent;
                 await _assetRepository.SaveChangesAsync();
+                //save hierarchy
+                await SaveHierarchyVersion(action);
             }
             catch (InvalidOperationException ex)
             {
@@ -272,29 +248,16 @@ namespace Application.Services
             string action = "Asset Add";
             root.Children.Add(asset);
             await _assetRepository.SaveChangesAsync();
-            SaveHierarchyVersion(action);
+
+            //save version
+            await SaveHierarchyVersion(action);
             await _logService.Log(action, assetName);
 
 
             //signal r
             var currentUserId = GetCurrentUserID();
             var username = GetCurrentUser();
-            List<string> connectionIds = NotificationHub.GetConnections(currentUserId);
-
-            await _hubContext.Clients.GroupExcept("Role_Admin", connectionIds).SendAsync("RecieveAssetNotification", new
-            {
-                Type = "AssetAdded",
-                User = username,
-                Name = assetName
-            });
-
-            await _hubContext.Clients.Group("Role_Viewer").SendAsync("RecieveAssetNotification", new
-            {
-                Type = "AssetAdded",
-                User = "Admin",
-                Name = assetName
-            });
-
+            
             string notificationMessage = $"{username} added asset {assetName} to the root";
             await SaveNotificationsForOfflineUsers("AssetAdded", notificationMessage, int.Parse(GetCurrentUserID()), GetCurrentUser());
 
@@ -304,38 +267,20 @@ namespace Application.Services
         public async Task<bool> RemoveNode(int nodeId)
         {
 
-            var node = _dbContext.Assets.FirstOrDefault(a => a.Id == nodeId);
+            var node = await _assetRepository.GetAssetByIdAsync(nodeId);
             if (node.ParentId == null) return false; //disallow deleting root node.
             if (node == null) return false;
 
             string name = node.Name; //for notification purpose
-            DeleteRecursively(node);   // handles children + node itself
-            _dbContext.SaveChanges();
+            await DeleteRecursively(node);   // handles children + node itself
+            await _assetRepository.SaveChangesAsync();
             string action = "Delete Asset";
-            SaveHierarchyVersion(action);
-            _logService.Log(action, node.Name);
+
+            //save version
+            await SaveHierarchyVersion(action);
+            await _logService.Log(action, node.Name);
 
             var currentUserId = GetCurrentUserID();
-            List<string> connectionIds = NotificationHub.GetConnections(currentUserId);
-
-
-            await _hubContext.Clients.GroupExcept("Role_Admin", connectionIds).SendAsync(
-                "RecieveAssetNotification", new
-                {
-                    Type = "AssetDeleted",
-                    User = GetCurrentUser(),
-                    Name = $"{name}"
-                }
-                );
-
-            await _hubContext.Clients.Group("Role_Viewer").SendAsync(
-                "RecieveAssetNotification", new
-                {
-                    Type = "AssetDeleted",
-                    User = "Admin",
-                    Name = $"{name}"
-                }
-                );
 
 
             string notificationMessage = $"{GetCurrentUser()} deleted asset {name}";
@@ -344,61 +289,42 @@ namespace Application.Services
 
             return true;
         }
-        private void DeleteRecursively(Asset node)
+        private async Task DeleteRecursively(Asset node)
         {
-            _dbContext.Entry(node).Collection(a => a.Children).Load();
+            await _assetRepository.LoadAssetWithChildrenAsync(node);
 
             foreach (var child in node.Children.ToList())
             {
-                DeleteRecursively(child);
+                await DeleteRecursively(child);
             }
 
             // Mark node for deletion
-            _dbContext.Assets.Remove(node);
+            _assetRepository.RemoveAssetAsync(node);
         }
 
 
         public async Task<bool> UpdateNode(int oldId, string newName)
         {
-            var node = _dbContext.Assets.FirstOrDefault(a => a.Id == oldId);
+            string action = "Update Asset";
+            var node = await _assetRepository.GetAssetByIdAsync(oldId);
             if (node.ParentId == null) return false; //disallow updating root node.
             if (node == null) return false;
             //check if same exists elsewhere
-            var checkName = _dbContext.Assets.Any(a => a.Name == newName);
+            bool checkName = await _assetRepository.CheckAssetByNameAsync(newName); 
 
             if (!checkName)
             {
                 string oldName = node.Name; //for notification purpose 
 
                 node.Name = newName;
-                _dbContext.SaveChanges();
+                await _assetRepository.SaveChangesAsync();
 
-                string action = "Update Asset";
-                SaveHierarchyVersion(action);
-                _logService.Log(action, newName);
+
+                //save version
+                await SaveHierarchyVersion(action);
+                await _logService.Log(action, newName);
                 var currentUserId = GetCurrentUserID();
-                List<string> connectionIds = NotificationHub.GetConnections(currentUserId);
-
-                await _hubContext.Clients.GroupExcept("Role_Admin", connectionIds).SendAsync(
-                    "RecieveAssetNotification", new
-                    {
-                        Type = "AssetUpdated",
-                        User = GetCurrentUser(),
-                        OldName = $"{oldName}",
-                        NewName = $"{newName}"
-                    }
-                );
-
-                await _hubContext.Clients.Group("Role_Viewer").SendAsync(
-                    "RecieveAssetNotification", new
-                    {
-                        Type = "AssetUpdated",
-                        User = "Admin",
-                        OldName = $"{oldName}",
-                        NewName = $"{newName}"
-                    }
-                );
-
+                
                 string notificationMessage = $"{GetCurrentUser()} updated asset {oldName} to {newName}";
                 await SaveNotificationsForOfflineUsers(type: "AssetUpdated", notificationMessage, int.Parse(GetCurrentUserID()), GetCurrentUser());
 
@@ -449,7 +375,7 @@ namespace Application.Services
 
         public int TotalAsset(Asset node)
         {
-            return _dbContext.Assets.Count();
+            return _assetRepository.GetAssetCount();
         }
 
         public bool CheckDuplicated(Asset node)
@@ -457,7 +383,7 @@ namespace Application.Services
 
             return true;
         }
-        public void ReplaceTree(Asset newRoot)
+        public async Task ReplaceTree(Asset newRoot)
         {
 
             // Check for duplicates in the incoming tree
@@ -471,13 +397,13 @@ namespace Application.Services
             try
             {
                 // Try truncate table (faster, resets IDs)
-                _dbContext.Database.ExecuteSqlRaw("TRUNCATE TABLE Assets");
+                await _assetRepository.TruncateAssetsAsync();
             }
             catch
             {
                 // Fallback: delete all one by one  + reseed identity
-                _dbContext.Database.ExecuteSqlRaw("DELETE FROM Assets");
-                _dbContext.Database.ExecuteSqlRaw("DBCC CHECKIDENT ('Assets', RESEED, 0)");
+                await _assetRepository.DeleteAllAssetsAsync();
+                await _assetRepository.ReseedAssetsIdentityAsync();
             }
 
             try
@@ -486,17 +412,17 @@ namespace Application.Services
                 string action = "Replace Hierarchy";
                 var json = SerializeJson(newRoot); //json before saving to database for log purposes
                 var root = new Asset { Name = "Root" };
-                _dbContext.Add(root);
-                _dbContext.SaveChanges(); // Save to get the generated ID
+                await _assetRepository.AddAsync(root);
+                await _assetRepository.SaveChangesAsync();// Save to get the generated ID
 
 
                 // Set parent relationships and add tree
                 ResetIds(newRoot);
                 SetParentIds(newRoot, root.Id);
-                _dbContext.Add(newRoot);
-                _dbContext.SaveChanges();
-                _logService.Log(action, asset: json);
-                SaveHierarchyVersion(action);
+                await _assetRepository.AddAsync(newRoot);
+                await _assetRepository.SaveChangesAsync();
+                await _logService.Log(action, asset: json);
+                await SaveHierarchyVersion(action);
             }
             catch (DbUpdateException ex)
             {
@@ -573,7 +499,7 @@ namespace Application.Services
             return count;
         }
 
-        public int MergeTree(Asset newTree)
+        public async Task<int> MergeTree(Asset newTree)
         {
             int totalAdded = 0;
             string action = "Merge Hierarchy";
@@ -584,39 +510,37 @@ namespace Application.Services
                 throw new Exception("Duplicate nodes present in uploaded tree");
 
             // Get the actual DB root
-            var dbRoot = _dbContext.Assets.FirstOrDefault(a => a.ParentId == null);
+            var dbRoot = await _assetRepository.GetRootAssetAsync();
             if (dbRoot == null)
             {
                 dbRoot = new Asset { Name = "Root" };
-                _dbContext.Assets.Add(dbRoot);
-                _dbContext.SaveChanges(); // Save to get generated ID
+                await _assetRepository.AddAsync(dbRoot);
+                await _assetRepository.SaveChangesAsync(); // Save to get generated ID
             }
             foreach (var child in newTree.Children)
             {
-                totalAdded += MergeNode(dbRoot, child);
+                totalAdded +=  await MergeNode(dbRoot, child);
 
             }
 
 
             if (totalAdded > 0)
-                _dbContext.SaveChanges();
+                await _assetRepository.SaveChangesAsync();
 
             //recursivley load children in root to represent deep hierarchy
-            var dbroot = _dbContext.Assets.FirstOrDefault(a => a.ParentId == null);
-            LoadChildren(dbroot);
+            var dbroot = await _assetRepository.GetRootWithChildrenAsync();
             _storage.SaveTree(dbroot);
-            _logService.Log(action, asset: json);
+            await _logService.Log(action, asset: json);
             SaveHierarchyVersion(action);
 
 
             return totalAdded;
         }
 
-        private int MergeNode(Asset currentParent, Asset newNode)
+        private async Task<int> MergeNode(Asset currentParent, Asset newNode)
         {
             // FIRST: Check if node exists GLOBALLY by name (most important check)
-            var globalMatch = _dbContext.Assets.Include(a => a.Signals)
-                .FirstOrDefault(a => a.Name.ToLower() == newNode.Name.ToLower());
+            var globalMatch =await _assetRepository.GetAssetByNameAsync(newNode.Name);
 
             if (globalMatch != null)
             {
@@ -625,7 +549,7 @@ namespace Application.Services
 
                 foreach (var child in newNode.Children)
                 {
-                    addedCount += MergeNode(globalMatch, child);
+                    addedCount += await MergeNode(globalMatch, child);
                 }
                 return addedCount;
             }
@@ -637,7 +561,7 @@ namespace Application.Services
             // Reset all child IDs recursively
             ResetChildIds(newNode);
 
-            _dbContext.Assets.Add(newNode);
+            await _assetRepository.AddAsync(newNode);
 
             assetsAdded.Add(newNode);
 
