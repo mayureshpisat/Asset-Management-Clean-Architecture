@@ -1,0 +1,43 @@
+{
+  "name": "Mach*DF&(*Sis",
+  "children": [
+    {
+      "name": "Lathe",
+      "children": [
+        {
+          "name": "Lathe Tooling",
+          "children": []
+        },
+        {
+          "name": "Lathe Maintenance",
+          "children": []
+        }
+      ]
+    },
+    {
+      "name": "Drill",
+      "children": [
+        {
+          "name": "Drill Bits",
+          "children": [],
+          "signal": {
+            "name" : "DFUSOF*)(DF", "valuetype" :  "real"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Welding",
+      "children": [
+        {
+          "name": "Arc Welding",
+          "children": []
+        },
+        {
+          "name": "Gas Welding",
+          "children": []
+        }
+      ]
+    }
+  ]
+}

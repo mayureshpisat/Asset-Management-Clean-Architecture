@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<asset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" id="root" name="Root">
+  <asset id="root" name="Root">
+    <asset id="left" name="Left System">
+      <asset id="asset1" name="Boiler System" />
+    </asset>
+  </asset>
+</asset>
