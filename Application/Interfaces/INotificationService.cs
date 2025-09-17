@@ -4,6 +4,6 @@ namespace Application.Interfaces
 {
     public interface INotificationService
     {
-        Task BroadcastToAdminsAndViewers(string currentUserId,  AssetNotificationDTO notification);
+        Task BroadcastToAdminsAndViewers( string currentUserId,  AssetNotificationDTO notification, string? notificationType = null);
     }
 }

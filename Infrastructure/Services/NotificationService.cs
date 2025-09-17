@@ -10,11 +10,12 @@ namespace Infrastructure.Services
     public class NotificationService : INotificationService
     {
         private readonly IHubContext<NotificationHub> _hubContext;
+
         public NotificationService(IHubContext<NotificationHub> hubContext) 
         {
             _hubContext = hubContext;
         }
-        public async Task BroadcastToAdminsAndViewers(string currentUserId,  AssetNotificationDTO notification)
+        public async Task BroadcastToAdminsAndViewers( string currentUserId,  AssetNotificationDTO notification, string? notificationType = null)
         {
             var connectionIds = NotificationHub.GetConnections(currentUserId) ?? new List<string>();
 
@@ -25,10 +26,6 @@ namespace Infrastructure.Services
             {
                 Console.WriteLine(id);
             }
-            // admins (exclude actor)
-            await _hubContext.Clients
-                .GroupExcept("Role_Admin", connectionIds)
-                .SendAsync("RecieveAssetNotification", notification);
 
             // viewers (mask user as "Admin")
             var viewerNotification = new AssetNotificationDTO
@@ -37,12 +34,39 @@ namespace Infrastructure.Services
                 User = "Admin", // mask
                 Name = notification.Name,
                 OldName = notification.OldName,
-                NewName = notification.NewName
+                NewName = notification.NewName,
+                ParentName = notification.ParentName
             };
 
-            await _hubContext.Clients
-                .Group("Role_Viewer")
-                .SendAsync("RecieveAssetNotification", viewerNotification);
+            if (notificationType.ToLower() == "signal")
+            {
+                // admins (exclude actor)
+                await _hubContext.Clients
+                    .GroupExcept("Role_Admin", connectionIds)
+                    .SendAsync("RecieveSignalNotification", notification);
+
+                //viewer
+                await _hubContext.Clients
+                    .Group("Role_Viewer")
+                    .SendAsync("RecieveSignalNotification", viewerNotification);
+
+            }
+            else
+            {
+                // admins (exclude actor)
+                await _hubContext.Clients
+                    .GroupExcept("Role_Admin", connectionIds)
+                    .SendAsync("RecieveAssetNotification", notification);
+
+                //viewer
+                await _hubContext.Clients
+                    .Group("Role_Viewer")
+                    .SendAsync("RecieveAssetNotification", viewerNotification);
+
+            }
+
+
+            
         }
 
 

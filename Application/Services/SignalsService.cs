@@ -24,6 +24,7 @@ namespace Application.Services
         private readonly INotificationService _notificationService;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly ISignalRepository _signalRepository;
+        public static string notificationType = "Signal";
         
         public SignalsService(IAssetStorageService storage, IAssetLogService logger, IHttpContextAccessor httpContextAccessor, ISignalRepository signalRepository, INotificationService notificationService)
         {
@@ -117,12 +118,12 @@ namespace Application.Services
             var currentUser = GetCurrentUser();
             AssetNotificationDTO signalNotification = new AssetNotificationDTO
             {
-                Type = action,
-                User = currentUser,
+                Type = "SignalAdded",
+                User = currentUserId,
                 Name = signal.Name,
                 ParentName = parentName
             };
-            await _notificationService.BroadcastToAdminsAndViewers(currentUserId, signalNotification);
+            await _notificationService.BroadcastToAdminsAndViewers(currentUserId, signalNotification, notificationType);
 
 
         }
@@ -154,13 +155,13 @@ namespace Application.Services
             var currentUser = GetCurrentUser();
             AssetNotificationDTO signalNotification = new AssetNotificationDTO
             {
-                Type = action,
-                User = currentUser,
+                Type = "SignalUpdated",
+                User = currentUserId,
                 OldName = oldName,
                 NewName = newName,
                 ParentName = parentName
             };
-            await _notificationService.BroadcastToAdminsAndViewers(currentUserId, signalNotification);
+            await _notificationService.BroadcastToAdminsAndViewers(currentUserId, signalNotification, notificationType);
 
         }
 
@@ -187,12 +188,12 @@ namespace Application.Services
             var currentUser = GetCurrentUser();
             AssetNotificationDTO signalNotification = new AssetNotificationDTO
             {
-                Type = action,
-                User = currentUser,
+                Type = "SignalDeleted",
+                User = currentUserId,
                 Name = signalName,
                 ParentName = parentName
             };
-            await _notificationService.BroadcastToAdminsAndViewers(currentUserId, signalNotification);
+            await _notificationService.BroadcastToAdminsAndViewers(currentUserId, signalNotification, notificationType);
 
             string notificationMessage = $"{GetCurrentUser()} deleted signal {signal.Name} under {parentName}";
         }

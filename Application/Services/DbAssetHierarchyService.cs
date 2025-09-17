@@ -33,6 +33,7 @@ namespace Application.Services
         public readonly IAssetLogService _logService;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly INotificationService _notificationService;
+        public static string notificationType = "Asset";
 
         public DbAssetHierarchyService(INotificationService notificationService, IAssetStorageService storage, IAssetLogService logService,  IHttpContextAccessor httpContextAccessor, IAssetRepository assetRepository)
         {
@@ -126,12 +127,13 @@ namespace Application.Services
             //notification
             var currentUserId = GetCurrentUserID();
             var currentUser = GetCurrentUser();
+
             AssetNotificationDTO notification = new AssetNotificationDTO
             {
-                User = currentUser,
+                User = currentUserId,
                 Name = newNode.Name,
                 ParentName = parent.Name,
-                Type = action
+                Type = "AssetAdded"
             };
             await _notificationService.BroadcastToAdminsAndViewers(currentUserId, notification);
             return true;
@@ -167,6 +169,18 @@ namespace Application.Services
                 await _assetRepository.SaveChangesAsync();
                 //save hierarchy
                 await SaveHierarchyVersion(action);
+
+
+                //notification
+                var currentUserId = GetCurrentUserID();
+                var currentUser = GetCurrentUser();
+
+                AssetNotificationDTO notification = new AssetNotificationDTO
+                {
+                    User = currentUserId,
+                    Type = "AssetReorder"
+                };
+                await _notificationService.BroadcastToAdminsAndViewers(currentUserId, notification);
             }
             catch (InvalidOperationException ex)
             {
@@ -232,9 +246,9 @@ namespace Application.Services
             var currentUser = GetCurrentUser();
             AssetNotificationDTO notification = new AssetNotificationDTO
             {
-                User = currentUser,
+                User = currentUserId,
                 Name = assetName,
-                Type = action
+                Type = "AssetAdded"
             };
             await _notificationService.BroadcastToAdminsAndViewers(currentUserId, notification);
 
@@ -264,13 +278,14 @@ namespace Application.Services
             //notification
             var currentUserId = GetCurrentUserID();
             var currentUser = GetCurrentUser();
+
             AssetNotificationDTO notification = new AssetNotificationDTO
             {
-                User = currentUser,
+                User = currentUserId,
                 Name = name,
-                Type = action
+                Type = "AssetDeleted"
             };
-            await _notificationService.BroadcastToAdminsAndViewers(currentUserId, notification);
+            await _notificationService.BroadcastToAdminsAndViewers(currentUserId, notification, notificationType);
 
             string notificationMessage = $"{GetCurrentUser()} deleted asset {name}";
             //await SaveNotificationsForOfflineUsers(type: "AssetDeleted", notificationMessage, int.Parse(GetCurrentUserID()), GetCurrentUser());
@@ -318,10 +333,10 @@ namespace Application.Services
                 var currentUser = GetCurrentUser();
                 AssetNotificationDTO notification = new AssetNotificationDTO
                 {
-                    User = currentUser,
+                    User = currentUserId,
                     OldName = oldName,
                     NewName = newName,
-                    Type = action
+                    Type = "AssetUpdated"
                 };
                 await _notificationService.BroadcastToAdminsAndViewers(currentUserId, notification);
 
