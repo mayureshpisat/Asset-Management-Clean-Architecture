@@ -135,7 +135,7 @@ namespace Application.Services
                 ParentName = parent.Name,
                 Type = "AssetAdded"
             };
-            await _notificationService.BroadcastToAdminsAndViewers(currentUserId, notification);
+            await _notificationService.BroadcastToAdminsAndViewers(currentUserId, notification, notificationType);
             return true;
         }
         public async Task ReorderNode(int assetId, int parentId)
@@ -180,7 +180,7 @@ namespace Application.Services
                     User = currentUserId,
                     Type = "AssetReorder"
                 };
-                await _notificationService.BroadcastToAdminsAndViewers(currentUserId, notification);
+                await _notificationService.BroadcastToAdminsAndViewers(currentUserId, notification, notificationType);
             }
             catch (InvalidOperationException ex)
             {
@@ -250,7 +250,7 @@ namespace Application.Services
                 Name = assetName,
                 Type = "AssetAdded"
             };
-            await _notificationService.BroadcastToAdminsAndViewers(currentUserId, notification);
+            await _notificationService.BroadcastToAdminsAndViewers(currentUserId, notification, notificationType);
 
             //string notificationMessage = $"{username} added asset {assetName} to the root";
             //await SaveNotificationsForOfflineUsers("AssetAdded", notificationMessage, int.Parse(GetCurrentUserID()), GetCurrentUser());

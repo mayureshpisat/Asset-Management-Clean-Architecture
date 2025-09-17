@@ -15,17 +15,17 @@
           "parentId": 2,
           "children": [
             {
-              "id": 6,
-              "name": "Lathe Tooling",
-              "parentId": 3,
-              "children": [],
-              "signals": []
-            },
-            {
               "id": 7,
               "name": "Lathe Maintenance",
               "parentId": 3,
               "children": [
+                {
+                  "id": 6,
+                  "name": "Lathe Tooling",
+                  "parentId": 7,
+                  "children": [],
+                  "signals": []
+                },
                 {
                   "id": 11,
                   "name": "Machine Tooling",
@@ -40,13 +40,6 @@
           "signals": []
         },
         {
-          "id": 4,
-          "name": "Drill",
-          "parentId": 2,
-          "children": [],
-          "signals": []
-        },
-        {
           "id": 5,
           "name": "Welding",
           "parentId": 2,
@@ -57,10 +50,18 @@
               "parentId": 5,
               "children": [
                 {
-                  "id": 8,
-                  "name": "Drill Bits",
+                  "id": 4,
+                  "name": "Drill",
                   "parentId": 9,
-                  "children": [],
+                  "children": [
+                    {
+                      "id": 8,
+                      "name": "Drill Bits",
+                      "parentId": 4,
+                      "children": [],
+                      "signals": []
+                    }
+                  ],
                   "signals": []
                 }
               ],

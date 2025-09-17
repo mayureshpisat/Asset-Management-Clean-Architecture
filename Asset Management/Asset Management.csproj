@@ -8,9 +8,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="DTO\**" />
     <Compile Remove="Models\**" />
+    <Content Remove="DTO\**" />
     <Content Remove="Models\**" />
+    <EmbeddedResource Remove="DTO\**" />
     <EmbeddedResource Remove="Models\**" />
+    <None Remove="DTO\**" />
     <None Remove="Models\**" />
   </ItemGroup>
 
@@ -35,9 +39,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Database\" />
     <Folder Include="Data\" />
-    <Folder Include="DTO\" />
     <Folder Include="Services\" />
   </ItemGroup>
 

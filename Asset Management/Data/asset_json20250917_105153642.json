@@ -1,0 +1,39 @@
+{
+  "id": 1,
+  "name": "Root",
+  "parentId": null,
+  "parent": null,
+  "children": [
+    {
+      "id": 15,
+      "name": "Furniture",
+      "parentId": 1,
+      "children": [
+        {
+          "id": 24,
+          "name": "dsf",
+          "parentId": 15,
+          "children": [],
+          "signals": []
+        }
+      ],
+      "signals": []
+    },
+    {
+      "id": 13,
+      "name": "Milling",
+      "parentId": 1,
+      "children": [],
+      "signals": [
+        {
+          "id": 9,
+          "name": "sdfsd",
+          "valueType": "string",
+          "description": "",
+          "assetId": 13
+        }
+      ]
+    }
+  ],
+  "signals": []
+}

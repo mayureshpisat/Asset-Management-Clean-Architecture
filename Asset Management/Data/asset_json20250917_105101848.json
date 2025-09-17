@@ -1,0 +1,62 @@
+{
+  "id": 1,
+  "name": "Root",
+  "parentId": null,
+  "parent": null,
+  "children": [
+    {
+      "id": 13,
+      "name": "Milling",
+      "parentId": 1,
+      "children": [],
+      "signals": [
+        {
+          "id": 9,
+          "name": "sdfsd",
+          "valueType": "string",
+          "description": "",
+          "assetId": 13
+        }
+      ]
+    },
+    {
+      "id": 15,
+      "name": "Furniture",
+      "parentId": 1,
+      "children": [
+        {
+          "id": 21,
+          "name": "Temperature Sensors",
+          "parentId": 15,
+          "children": [
+            {
+              "id": 19,
+              "name": "Chairs",
+              "parentId": 21,
+              "children": [],
+              "signals": []
+            },
+            {
+              "id": 20,
+              "name": "Desks",
+              "parentId": 21,
+              "children": [
+                {
+                  "id": 18,
+                  "name": "Controllers",
+                  "parentId": 20,
+                  "children": [],
+                  "signals": []
+                }
+              ],
+              "signals": []
+            }
+          ],
+          "signals": []
+        }
+      ],
+      "signals": []
+    }
+  ],
+  "signals": []
+}
