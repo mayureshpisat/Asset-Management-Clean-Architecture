@@ -34,6 +34,8 @@ namespace Application.Interfaces
         Task ReseedAssetsIdentityAsync();
 
         int GetAssetCount();
+
+        int GetLength();
     }
 
 }

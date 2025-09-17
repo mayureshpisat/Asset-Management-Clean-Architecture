@@ -1,6 +1,7 @@
-﻿using Asset_Management.Database;
-using Asset_Management.Interfaces;
-using Asset_Management.Services;
+﻿using Infrastructure.Persistence;
+using Application.Interfaces;
+using Application.Services;
+using Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;

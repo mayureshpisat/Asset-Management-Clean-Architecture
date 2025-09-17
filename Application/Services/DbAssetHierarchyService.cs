@@ -10,6 +10,7 @@ using System.Runtime.CompilerServices;
 using System.Security.Claims;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 
 namespace Application.Services
 {
@@ -40,39 +41,6 @@ namespace Application.Services
             _httpContextAccessor = httpContextAccessor;
             _notificationService = notificationService;
             _assetRepository = assetRepository;
-        }
-
-        private async Task SaveNotificationsForOfflineUsers(string type, string notificationMessage, int senderId, string senderName)
-        {
-            // Get all admins except the sender
-            var allAdmins = await _dbContext.Users.Where(u => u.Role == "Admin" && u.Id != senderId).ToListAsync();
-
-            foreach (var admin in allAdmins)
-            {
-                // Check if admin is currently online
-                List<string> adminConnections = NotificationHub.GetConnections(admin.Id.ToString());
-                bool isOnline = adminConnections != null && adminConnections.Any();
-
-                var notification = new Notification
-                {
-                    UserId = admin.Id,
-                    Type = type,
-                    Message = notificationMessage,
-                    SenderName = senderName,
-                    CreatedAt = DateTime.UtcNow,
-                    IsRead = false
-                };
-
-                Console.WriteLine($"Saving notification for Admin ID: {admin.Id} (Online: {isOnline})");
-                Console.WriteLine($"Sender: {notification.SenderName}");
-                Console.WriteLine($"Message: {notification.Message}");
-                _dbContext.Notifications.Add(notification);
-            }
-
-            if (allAdmins.Any())
-            {
-                await _dbContext.SaveChangesAsync();
-            }
         }
 
 
@@ -126,8 +94,10 @@ namespace Application.Services
             //recursivley load children in root to represent deep hierarchy
             var root = await _assetRepository.GetRootWithChildrenAsync();
             _storage.SaveTree(root, action);
+            Console.WriteLine("VERSION SAVED");
+
         }
-        
+
 
         public async Task<bool> AddNode(int parentId, Asset newNode)
         {
@@ -152,15 +122,18 @@ namespace Application.Services
             await SaveHierarchyVersion(action);
             await _logService.Log(action, asset: newNode.Name);
 
+
+            //notification
             var currentUserId = GetCurrentUserID();
-            
-
-
-            string notificationMessage = $"sjdf;lskjsdkjkfljl;sdjf;lsdjflasdmfldsjflskdfndsl;fkjsdlfkjsflksdjfsd;lsdnfsdnfdsnf{GetCurrentUser()} added new asset {newNode.Name}";
-            await SaveNotificationsForOfflineUsers(type: "AssetAdded", notificationMessage, int.Parse(GetCurrentUserID()), GetCurrentUser());
-
-
-
+            var currentUser = GetCurrentUser();
+            AssetNotificationDTO notification = new AssetNotificationDTO
+            {
+                User = currentUser,
+                Name = newNode.Name,
+                ParentName = parent.Name,
+                Type = action
+            };
+            await _notificationService.BroadcastToAdminsAndViewers(currentUserId, notification);
             return true;
         }
         public async Task ReorderNode(int assetId, int parentId)
@@ -254,12 +227,19 @@ namespace Application.Services
             await _logService.Log(action, assetName);
 
 
-            //signal r
+            //notification
             var currentUserId = GetCurrentUserID();
-            var username = GetCurrentUser();
-            
-            string notificationMessage = $"{username} added asset {assetName} to the root";
-            await SaveNotificationsForOfflineUsers("AssetAdded", notificationMessage, int.Parse(GetCurrentUserID()), GetCurrentUser());
+            var currentUser = GetCurrentUser();
+            AssetNotificationDTO notification = new AssetNotificationDTO
+            {
+                User = currentUser,
+                Name = assetName,
+                Type = action
+            };
+            await _notificationService.BroadcastToAdminsAndViewers(currentUserId, notification);
+
+            //string notificationMessage = $"{username} added asset {assetName} to the root";
+            //await SaveNotificationsForOfflineUsers("AssetAdded", notificationMessage, int.Parse(GetCurrentUserID()), GetCurrentUser());
 
             return true;
         }
@@ -280,11 +260,20 @@ namespace Application.Services
             await SaveHierarchyVersion(action);
             await _logService.Log(action, node.Name);
 
-            var currentUserId = GetCurrentUserID();
 
+            //notification
+            var currentUserId = GetCurrentUserID();
+            var currentUser = GetCurrentUser();
+            AssetNotificationDTO notification = new AssetNotificationDTO
+            {
+                User = currentUser,
+                Name = name,
+                Type = action
+            };
+            await _notificationService.BroadcastToAdminsAndViewers(currentUserId, notification);
 
             string notificationMessage = $"{GetCurrentUser()} deleted asset {name}";
-            await SaveNotificationsForOfflineUsers(type: "AssetDeleted", notificationMessage, int.Parse(GetCurrentUserID()), GetCurrentUser());
+            //await SaveNotificationsForOfflineUsers(type: "AssetDeleted", notificationMessage, int.Parse(GetCurrentUserID()), GetCurrentUser());
 
 
             return true;
@@ -323,10 +312,21 @@ namespace Application.Services
                 //save version
                 await SaveHierarchyVersion(action);
                 await _logService.Log(action, newName);
+
+                //notification
                 var currentUserId = GetCurrentUserID();
-                
+                var currentUser = GetCurrentUser();
+                AssetNotificationDTO notification = new AssetNotificationDTO
+                {
+                    User = currentUser,
+                    OldName = oldName,
+                    NewName = newName,
+                    Type = action
+                };
+                await _notificationService.BroadcastToAdminsAndViewers(currentUserId, notification);
+
                 string notificationMessage = $"{GetCurrentUser()} updated asset {oldName} to {newName}";
-                await SaveNotificationsForOfflineUsers(type: "AssetUpdated", notificationMessage, int.Parse(GetCurrentUserID()), GetCurrentUser());
+                //await SaveNotificationsForOfflineUsers(type: "AssetUpdated", notificationMessage, int.Parse(GetCurrentUserID()), GetCurrentUser());
 
 
 
@@ -421,7 +421,8 @@ namespace Application.Services
                 SetParentIds(newRoot, root.Id);
                 await _assetRepository.AddAsync(newRoot);
                 await _assetRepository.SaveChangesAsync();
-                await _logService.Log(action, asset: json);
+
+                //await _logService.Log(action, asset: json);
                 await SaveHierarchyVersion(action);
             }
             catch (DbUpdateException ex)
@@ -486,14 +487,14 @@ namespace Application.Services
         }
 
 
-        public int TreeLength(Asset node)
+        public async Task<int> TreeLength(Asset node)
         {
             int count = 1;
 
-            _dbContext.Entry(node).Collection(n => n.Children).Load();
+            await _assetRepository.LoadAssetWithChildrenAsync(node);
             foreach (var child in node.Children)
             {
-                count += TreeLength(child);
+                count += await TreeLength(child);
             }
 
             return count;
@@ -510,7 +511,7 @@ namespace Application.Services
                 throw new Exception("Duplicate nodes present in uploaded tree");
 
             // Get the actual DB root
-            var dbRoot = await _assetRepository.GetRootAssetAsync();
+            var dbRoot = await _assetRepository.GetRootWithChildrenAsync();
             if (dbRoot == null)
             {
                 dbRoot = new Asset { Name = "Root" };
@@ -525,13 +526,18 @@ namespace Application.Services
 
 
             if (totalAdded > 0)
+            {
                 await _assetRepository.SaveChangesAsync();
+            }
+                
 
             //recursivley load children in root to represent deep hierarchy
             var dbroot = await _assetRepository.GetRootWithChildrenAsync();
-            _storage.SaveTree(dbroot);
-            await _logService.Log(action, asset: json);
-            SaveHierarchyVersion(action);
+
+            //await _logService.Log(action, asset: json);
+
+            await SaveHierarchyVersion(action);
+
 
 
             return totalAdded;
@@ -565,7 +571,7 @@ namespace Application.Services
 
             assetsAdded.Add(newNode);
 
-            return TreeLength(newNode);
+            return await TreeLength(newNode);
         }
 
         private void ResetChildIds(Asset node)

@@ -1,6 +1,6 @@
-﻿using Asset_Management.DTO;
-using Asset_Management.Interfaces;
-using Asset_Management.Models;
+﻿using Application.DTO;
+using Application.Interfaces;
+using Domain.Entities;
 using Azure.Core;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -22,11 +22,11 @@ namespace Asset_Management.Controllers
         }
 
         [HttpGet("Asset/{assetId}/AllSignals")]
-        public IActionResult GetSignals(int assetId)
+        public async Task<IActionResult> GetSignals(int assetId)
         {
             try
             {
-                IEnumerable<Signal> signals = _service.GetSignals(assetId);
+                IEnumerable<Signal> signals = await _service.GetSignals(assetId);
                 return Ok(signals);
 
             }catch(Exception ex)
@@ -37,11 +37,11 @@ namespace Asset_Management.Controllers
         }
 
         [HttpGet("Asset/{assetId}/Signal/{signalId}")]
-        public IActionResult GetSpecificSignal(int assetId, int signalId)
+        public async Task<IActionResult> GetSpecificSignal(int assetId, int signalId)
         {
             try
             {
-                Signal signal = _service.GetSpecificSignal(assetId, signalId);
+                Signal signal = await _service.GetSpecificSignal(assetId, signalId);
                 return Ok(signal);
             }
             catch (Exception ex)
@@ -52,7 +52,7 @@ namespace Asset_Management.Controllers
 
         [HttpPost("Asset/{assetId}/AddSignal")]
         [Authorize(Roles ="Admin")]
-        public IActionResult AddSignal(int assetId, [FromBody] GlobalSignalDTO request)
+        public async Task<IActionResult> AddSignal(int assetId, [FromBody] GlobalSignalDTO request)
         {
             if (!ModelState.IsValid)
             {
@@ -60,7 +60,7 @@ namespace Asset_Management.Controllers
             }
             try
             {
-                _service.AddSignal(assetId, request);
+                await _service.AddSignal(assetId, request);
                 return Ok("Signal added successfully");
 
             }
@@ -78,16 +78,20 @@ namespace Asset_Management.Controllers
         [HttpPut("Asset/{assetId}/UpdateSignal/{signalId}")]
         [Authorize(Roles = "Admin")]
 
-        public IActionResult UpdateSignal(int assetId, int signalId ,[FromBody] GlobalSignalDTO request)
+        public async Task<IActionResult> UpdateSignal(int assetId, int signalId ,[FromBody] GlobalSignalDTO request)
         {
+            Console.WriteLine($"Signal Info {request.Name}, {request.ValueType}, {request.Description}");
+
             if (!ModelState.IsValid)
             {
-                return BadRequest("Invalid Description or Name. Only letters, numbers, and spaces are allowed, max 30 characters.");
+                var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
+                return BadRequest(new { Errors = errors });
             }
 
             try
             {
-                _service.UpdateSignal(assetId, signalId, request);
+                await _service.UpdateSignal(assetId, signalId, request);
+
                 return Ok("Signal updated successfully");
 
             }catch(DbUpdateException ex)
@@ -104,11 +108,11 @@ namespace Asset_Management.Controllers
         [HttpDelete("Asset/{assetId}/Delete/Signal/{signalId}")]
         [Authorize(Roles = "Admin")]
 
-        public IActionResult DeleteSignal(int signalId, int assetId)
+        public async Task<IActionResult> DeleteSignal(int signalId, int assetId)
         {
             try
             {
-                _service.DeleteSignal(signalId, assetId);
+                await _service.DeleteSignal(signalId, assetId);
                 return Ok("Signal deleted successfully");
 
             }

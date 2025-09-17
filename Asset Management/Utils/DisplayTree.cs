@@ -1,4 +1,4 @@
-﻿using Asset_Management.Models;
+﻿using Domain.Entities;
 
 namespace Asset_Management.Utils
 {

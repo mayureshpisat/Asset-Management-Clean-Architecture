@@ -1,5 +1,5 @@
-﻿using Asset_Management.Interfaces;
-namespace Asset_Management.Services
+﻿using Application.Interfaces;
+namespace Application.Services
 {
     public class UploadLogEntry
     {

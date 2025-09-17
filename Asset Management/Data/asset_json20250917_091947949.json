@@ -47,17 +47,17 @@
           ],
           "signals": [
             {
-              "id": 5,
-              "name": "sfdds",
+              "id": 3,
+              "name": "sfdssfs",
               "valueType": "string",
-              "description": "",
+              "description": "fsdfsdf",
               "assetId": 3
             },
             {
-              "id": 6,
-              "name": "niinii",
+              "id": 2,
+              "name": "kj",
               "valueType": "string",
-              "description": "sfds",
+              "description": "dfs",
               "assetId": 3
             }
           ]

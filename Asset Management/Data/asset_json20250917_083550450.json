@@ -45,22 +45,7 @@
               "signals": []
             }
           ],
-          "signals": [
-            {
-              "id": 5,
-              "name": "sfdds",
-              "valueType": "string",
-              "description": "",
-              "assetId": 3
-            },
-            {
-              "id": 6,
-              "name": "niinii",
-              "valueType": "string",
-              "description": "sfds",
-              "assetId": 3
-            }
-          ]
+          "signals": []
         },
         {
           "id": 4,

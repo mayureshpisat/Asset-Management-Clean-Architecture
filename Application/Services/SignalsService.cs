@@ -64,7 +64,12 @@ namespace Application.Services
             var asset = await _signalRepository.GetAssetWithSignalsAsync(assetId);
             if (asset == null)
                 throw new Exception("Asset not found");
-            var signals = asset.Signals.ToList();
+            List<Signal> signals = asset.Signals.ToList();
+            foreach(var signal in signals)
+            {
+                Console.WriteLine($"{signal.Name}");
+            }
+            
 
             return signals;
         }
@@ -103,7 +108,7 @@ namespace Application.Services
             string parentName = asset.Name;
             asset.Signals.Add(new Signal { Name = signal.Name, ValueType = signal.ValueType, Description = signal.Description });
             await _signalRepository.SaveChangesAsync();
-            SaveHierarchyVersion(action: "Add Signal");
+            await SaveHierarchyVersion(action: "Add Signal");
             await _logger.Log(action, null, signal.Name);
 
 
@@ -140,7 +145,7 @@ namespace Application.Services
             signal.Description = request.Description;
             signal.ValueType = request.ValueType;
             await _signalRepository.SaveChangesAsync();
-            SaveHierarchyVersion( action: "Update Signal");
+            await SaveHierarchyVersion( action: "Update Signal");
             await _logger.Log(action, null, signal: request.Name);
 
 
@@ -175,7 +180,7 @@ namespace Application.Services
             Console.WriteLine($"FROM DELETE SIGNAL " + signalName);
             //do deletion
             await _signalRepository.RemoveSignalAsync(signal);
-            SaveHierarchyVersion(action: "Delete Signal");
+            await SaveHierarchyVersion(action: "Delete Signal");
             await _logger.Log(action, null, signal: signal.Name);
 
             var currentUserId = GetCurrentUserID();

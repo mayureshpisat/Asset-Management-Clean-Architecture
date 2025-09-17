@@ -1,7 +1,8 @@
-﻿using Asset_Management.DTO;
-using Asset_Management.Interfaces;
-using Asset_Management.Models;
-using Asset_Management.Services;
+﻿using Application.DTO;
+using Application.Interfaces;
+using Domain.Entities;
+using Application.Services;
+using Infrastructure.Services;
 using Asset_Management.Utils;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -42,10 +43,10 @@ namespace Asset_Management.Controllers
         
 
         [HttpGet]
-        public IActionResult GetHierarchy()
+        public async Task<IActionResult> GetHierarchy()
         {
             
-            var tree = _service.GetHierarchy();
+            var tree = await _service.GetHierarchy();
             if (tree == null)
             {
                 return BadRequest("No Asset Hierarchy Present. Please upload to start.");
@@ -55,9 +56,9 @@ namespace Asset_Management.Controllers
 
         //Get toatal Assets in the Hierarchy Tree
         [HttpGet("TotalAssets")]
-        public IActionResult GetTotalAssets()
+        public async Task<IActionResult> GetTotalAssets()
         {
-            var tree = _service.GetHierarchy();
+            var tree = await _service.GetHierarchy();
             if (tree == null)
             {
                 return BadRequest("No tree present");
@@ -148,7 +149,7 @@ namespace Asset_Management.Controllers
 
         [HttpPost("UploadExistingTree")]
         [Authorize(Roles ="Admin")]
-        public IActionResult UploadInExisting(IFormFile file)
+        public async Task<IActionResult> UploadInExisting(IFormFile file)
         {
             var FileExtension = System.IO.Path.GetExtension(file.FileName);
             var storageExtension = "." + _configuration["StorageFlag"];
@@ -168,11 +169,7 @@ namespace Asset_Management.Controllers
                 ValidateAssetRecursively(NewAdditionTree);
 
 
-                // Remove the null check since int IDs default to 0
-                // Reset IDs to 0 so EF Core can generate new ones
-                //ResetTreeIds(NewAdditionTree);
-
-                int result = _service.MergeTree(NewAdditionTree);
+                int result = await _service.MergeTree(NewAdditionTree);
                 _uploadlog.UpdateLog(file.FileName, "merged");
                 HttpContext.Items["assetsAdded"] = DbAssetHierarchyService.assetsAdded;
                 return Ok(result);
@@ -236,24 +233,24 @@ namespace Asset_Management.Controllers
                     //check the validation and format of the tree
                     var newRoot = _storage.ParseTree(content);
                     ValidateAssetRecursively(newRoot);
-                    Console.WriteLine("Parsing Done");
-                    //PopulateParentIds.AssignParentIds(newRoot);
-                    foreach(var child in newRoot.Children)
+                    PopulateParentIds.AssignParentIds(newRoot);
+                    foreach (var child in newRoot.Children)
                     {
                         Console.WriteLine($"Parent: {child.ParentId}, Name: {child.Name}, Id: {child.Id}");
                     }
-                    _service.ReplaceTree(newRoot);
+                    await _service.ReplaceTree(newRoot);
                     _uploadlog.UpdateLog(file.FileName, "uploaded"); //updateLogService
                     return Ok("File uploaded successfully");
                 }
                 catch (InvalidFileFormatException ex)
                 {
                     return BadRequest($"{ex.Message}");
-                }catch(DbUpdateException ex)
+                }
+                catch (DbUpdateException ex)
                 {
                     return BadRequest($"Database Saving exception");
                 }
-                catch(ValidationException ex)
+                catch (ValidationException ex)
                 {
                     return BadRequest($"Invalid name, value or description fields present in the uploaded heirarchy");
                 }

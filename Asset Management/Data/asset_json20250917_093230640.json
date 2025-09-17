@@ -54,10 +54,24 @@
               "assetId": 3
             },
             {
-              "id": 6,
-              "name": "niinii",
+              "id": 2,
+              "name": "kj",
               "valueType": "string",
-              "description": "sfds",
+              "description": "dfs",
+              "assetId": 3
+            },
+            {
+              "id": 3,
+              "name": "sfdssfsn",
+              "valueType": "string",
+              "description": "sfs",
+              "assetId": 3
+            },
+            {
+              "id": 4,
+              "name": " e",
+              "valueType": "string",
+              "description": "",
               "assetId": 3
             }
           ]

@@ -1,0 +1,114 @@
+{
+  "id": 1,
+  "name": "Root",
+  "parentId": null,
+  "parent": null,
+  "children": [
+    {
+      "id": 2,
+      "name": "Machines",
+      "parentId": 1,
+      "children": [
+        {
+          "id": 3,
+          "name": "Lathe",
+          "parentId": 2,
+          "children": [
+            {
+              "id": 7,
+              "name": "Lathe Tooling",
+              "parentId": 3,
+              "children": [
+                {
+                  "id": 13,
+                  "name": "Cutting Tools",
+                  "parentId": 7,
+                  "children": [],
+                  "signals": []
+                }
+              ],
+              "signals": []
+            }
+          ],
+          "signals": []
+        },
+        {
+          "id": 4,
+          "name": "Milling",
+          "parentId": 2,
+          "children": [
+            {
+              "id": 8,
+              "name": "CNC Milling",
+              "parentId": 4,
+              "children": [],
+              "signals": []
+            }
+          ],
+          "signals": []
+        },
+        {
+          "id": 5,
+          "name": "Electronics",
+          "parentId": 2,
+          "children": [
+            {
+              "id": 9,
+              "name": "Sensors",
+              "parentId": 5,
+              "children": [
+                {
+                  "id": 14,
+                  "name": "Temperature Sensors",
+                  "parentId": 9,
+                  "children": [],
+                  "signals": []
+                },
+                {
+                  "id": 15,
+                  "name": "Pressure Sensors",
+                  "parentId": 9,
+                  "children": [],
+                  "signals": []
+                }
+              ],
+              "signals": []
+            },
+            {
+              "id": 10,
+              "name": "Controllers",
+              "parentId": 5,
+              "children": [],
+              "signals": []
+            }
+          ],
+          "signals": []
+        },
+        {
+          "id": 6,
+          "name": "Furniture",
+          "parentId": 2,
+          "children": [
+            {
+              "id": 11,
+              "name": "Chairs",
+              "parentId": 6,
+              "children": [],
+              "signals": []
+            },
+            {
+              "id": 12,
+              "name": "Desks",
+              "parentId": 6,
+              "children": [],
+              "signals": []
+            }
+          ],
+          "signals": []
+        }
+      ],
+      "signals": []
+    }
+  ],
+  "signals": []
+}

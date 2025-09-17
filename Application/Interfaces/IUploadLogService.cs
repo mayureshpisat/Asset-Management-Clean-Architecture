@@ -1,7 +1,7 @@
-﻿using Asset_Management.Services;
-
-namespace Asset_Management.Interfaces
+﻿using Application.Services;
+namespace Application.Interfaces
 {
+
     public interface IUploadLogService
     {
         void UpdateLog(string filename, string importType);

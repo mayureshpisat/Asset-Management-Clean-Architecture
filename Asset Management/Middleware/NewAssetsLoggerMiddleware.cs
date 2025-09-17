@@ -1,4 +1,5 @@
-﻿using Asset_Management.Services;
+﻿using Application.Services;
+using Infrastructure.Services;
 using System.Text.Json;
 using Serilog;
 
@@ -35,7 +36,7 @@ namespace Asset_Management.Middleware
                     //Console.WriteLine(json);
                     //_logger.LogInformation($"Added assets: {json}");
                     //clear the assets Added list so that middleware includes only newly added assets
-                    AssetHierarchyService.assetsAdded.Clear();
+                    //AssetHierarchyService.assetsAdded.Clear();
                 }
             }
             else

@@ -47,6 +47,13 @@
           ],
           "signals": [
             {
+              "id": 4,
+              "name": " e",
+              "valueType": "string",
+              "description": "",
+              "assetId": 3
+            },
+            {
               "id": 5,
               "name": "sfdds",
               "valueType": "string",

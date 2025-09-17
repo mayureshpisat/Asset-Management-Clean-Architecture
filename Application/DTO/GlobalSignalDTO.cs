@@ -10,9 +10,9 @@ namespace Application.DTO
         public string Name { get; set; }
         public string ValueType { get; set; }
 
-        [RegularExpression(@"^[a-zA-Z0-9 ]{1,30}$",
+        [RegularExpression(@"^.{1,30}$",
             ErrorMessage = "Invalid Description. Only letters, numbers, and spaces are allowed, max 30 characters.")]
-        public string? Description { get; set; }
+        public string? Description { get; set; } 
 
     }
 }

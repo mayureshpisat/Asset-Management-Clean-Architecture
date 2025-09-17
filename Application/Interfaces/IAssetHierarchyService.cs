@@ -19,6 +19,6 @@ namespace Application.Interfaces
         int TotalAsset(Asset Node);
         Task ReplaceTree(Asset newRoot);
         Task<int> MergeTree(Asset AddtionalNode);
-        int TreeLength(Asset Node);
+        Task<int> TreeLength(Asset Node);
     }
 }

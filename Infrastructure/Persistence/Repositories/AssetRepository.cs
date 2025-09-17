@@ -1,6 +1,7 @@
 ﻿using Application.Interfaces;
 using Domain.Entities;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -24,6 +25,8 @@ namespace Infrastructure.Persistence.Repositories
         public async Task<Asset> GetRootWithChildrenAsync()
         {
             var root = await _dbContext.Assets.FirstOrDefaultAsync(a => a.ParentId == null);
+            if (root == null)
+                return null;
             await LoadChildrenAsync(root);
             return root;
         }
@@ -50,7 +53,7 @@ namespace Infrastructure.Persistence.Repositories
 
         public async Task<Asset> GetAssetByNameAsync(string assetName)
         {
-            var asset = await _dbContext.Assets.FirstOrDefaultAsync(a=>a.Name == assetName);
+            var asset = await _dbContext.Assets.FirstOrDefaultAsync(a=>a.Name == assetName.ToLower());
             return asset;
         }
 
@@ -96,10 +99,20 @@ namespace Infrastructure.Persistence.Repositories
 
         public async Task ReseedAssetsIdentityAsync()
         {
+            //DELETE does not reset the identity — the next inserted row keeps incrementing from the last value
             await _dbContext.Database.ExecuteSqlRawAsync("DBCC CHECKIDENT ('Assets', RESEED, 0)");
         }
 
 
+        public int GetAssetCount()
+        {
+            return _dbContext.Assets.Count();
+        }
+
+        public int GetLength()
+        {
+            return _dbContext.Assets.Count();
+        }
 
 
 

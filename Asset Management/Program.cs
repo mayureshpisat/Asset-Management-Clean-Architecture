@@ -1,10 +1,11 @@
-using Asset_Management.Database;
+using Infrastructure.Persistence;
 using Asset_Management.Extensions;
-using Asset_Management.Hubs;
-using Asset_Management.Interfaces;
+using Infrastructure.Hubs;
+using Application.Interfaces;
 using Asset_Management.Middleware;
-using Asset_Management.Models;
-using Asset_Management.Services;
+using Domain.Entities;
+using Application.Services;
+using Infrastructure.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -103,8 +104,7 @@ builder.Services.AddStorageServices(builder.Configuration);
 // Add a password hasher
 builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
 
-//Notification service (singleton/ is stateless)
-builder.Services.AddSingleton<INotificationService, NotificationService>();
+
 
 //configure jwt settings
 var jwtSettings = builder.Configuration.GetSection("Jwt");
@@ -172,12 +172,11 @@ builder.Services.Configure<ApiBehaviorOptions>(options =>
     options.SuppressModelStateInvalidFilter = true;
 });
 
-builder.Services.AddScoped<IAssetLogService, AssetLogService>();
+
 
 
 //signal R DI
 builder.Services.AddSignalR();
-
 var app = builder.Build();
 
 

@@ -1,5 +1,7 @@
-﻿using Asset_Management.Interfaces;
-using Asset_Management.Services;
+﻿using Application.Interfaces;
+using Application.Services;
+using Infrastructure.Persistence.Repositories;
+using Infrastructure.Services;
 using System.Runtime.CompilerServices;
 
 namespace Asset_Management.Extensions
@@ -13,12 +15,17 @@ namespace Asset_Management.Extensions
             if (serviceType == "db")
             {
                 service.AddScoped<IAssetHierarchyService, DbAssetHierarchyService>();
-
+                service.AddScoped<IAssetRepository, AssetRepository>();
+                service.AddScoped<ISignalRepository, SignalRepository>();
+                //Notification service (singleton/ is stateless)
+                service.AddSingleton<INotificationService, NotificationService>();
+                //log service
+                service.AddScoped<IAssetLogService, AssetLogService>();
             }
-            else
-            {
-                service.AddScoped<IAssetHierarchyService, AssetHierarchyService>();
-            }
+            //else
+            //{
+            //    service.AddScoped<IAssetHierarchyService, AssetHierarchyService>();
+            //}
             return service;
 
         }

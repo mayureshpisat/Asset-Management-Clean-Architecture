@@ -1,4 +1,4 @@
-﻿using Asset_Management.Database;
+﻿using Infrastructure.Persistence;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;

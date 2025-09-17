@@ -11,7 +11,8 @@ namespace Infrastructure.Services
     {
         private readonly IHubContext<NotificationHub> _hubContext;
         public NotificationService(IHubContext<NotificationHub> hubContext) 
-        { 
+        {
+            _hubContext = hubContext;
         }
         public async Task BroadcastToAdminsAndViewers(string currentUserId,  AssetNotificationDTO notification)
         {
@@ -43,6 +44,42 @@ namespace Infrastructure.Services
                 .Group("Role_Viewer")
                 .SendAsync("RecieveAssetNotification", viewerNotification);
         }
+
+
+
+        //from dbassethierarchyservice
+        //private async Task SaveNotificationsForOfflineUsers(string type, string notificationMessage, int senderId, string senderName)
+        //{
+        //    // Get all admins except the sender
+        //    var allAdmins = await _dbContext.Users.Where(u => u.Role == "Admin" && u.Id != senderId).ToListAsync();
+
+        //    foreach (var admin in allAdmins)
+        //    {
+        //        // Check if admin is currently online
+        //        List<string> adminConnections = NotificationHub.GetConnections(admin.Id.ToString());
+        //        bool isOnline = adminConnections != null && adminConnections.Any();
+
+        //        var notification = new Notification
+        //        {
+        //            UserId = admin.Id,
+        //            Type = type,
+        //            Message = notificationMessage,
+        //            SenderName = senderName,
+        //            CreatedAt = DateTime.UtcNow,
+        //            IsRead = false
+        //        };
+
+        //        Console.WriteLine($"Saving notification for Admin ID: {admin.Id} (Online: {isOnline})");
+        //        Console.WriteLine($"Sender: {notification.SenderName}");
+        //        Console.WriteLine($"Message: {notification.Message}");
+        //        _dbContext.Notifications.Add(notification);
+        //    }
+
+        //    if (allAdmins.Any())
+        //    {
+        //        await _dbContext.SaveChangesAsync();
+        //    }
+        //}
 
         //private async Task SaveNotificationsForOfflineUsers(string type, string notificationMessage, int senderId, string senderName)
         //{

@@ -29,8 +29,11 @@ namespace Infrastructure.Services
             if (string.IsNullOrWhiteSpace(signal))
                 signal = string.Empty;
 
+            Console.WriteLine($"Action : {action}");
+
 
             int.TryParse(_httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out int user);
+            Console.WriteLine($"User : {user}");
 
             AssetLog assetLog = new AssetLog
             {
@@ -43,6 +46,9 @@ namespace Infrastructure.Services
             };
             await _dbContext.AssetLogs.AddAsync(assetLog);
             await _dbContext.SaveChangesAsync();
+
+            Console.WriteLine($"{action} LOGGED");
+
 
         }
 
