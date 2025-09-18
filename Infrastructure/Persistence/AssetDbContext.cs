@@ -1,5 +1,6 @@
 ﻿using Domain.Entities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Identity.Client;
 using System.Reflection;
 
 namespace Infrastructure.Persistence
@@ -20,6 +21,8 @@ namespace Infrastructure.Persistence
         public DbSet<AssetLog> AssetLogs { get; set; }
 
         public DbSet<Notification> Notifications { get; set; }
+
+        public DbSet<AssetInfo> AssetInfos { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

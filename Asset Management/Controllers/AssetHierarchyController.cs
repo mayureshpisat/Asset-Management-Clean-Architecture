@@ -30,14 +30,16 @@ namespace Asset_Management.Controllers
         private readonly IConfiguration _configuration;
         private readonly IAssetStorageService _storage;
         private readonly IUploadLogService _uploadlog;
+        private readonly IQueueService _queueService;
 
-        public AssetHierarchyController(IAssetHierarchyService service, IWebHostEnvironment env, IConfiguration configuration, IAssetStorageService storage, IUploadLogService uploadlog)
+        public AssetHierarchyController(IAssetHierarchyService service, IWebHostEnvironment env, IConfiguration configuration, IAssetStorageService storage, IUploadLogService uploadlog, IQueueService queueService)
         {
             _service = service;
             _storage = storage;
             _env = env;
             _configuration = configuration;
             _uploadlog = uploadlog;
+            _queueService = queueService;
         }
 
         
@@ -345,7 +347,16 @@ namespace Asset_Management.Controllers
             }
             return Ok("No import logs found");
         }
+
+        [HttpPost("GetAssetInfo/{assetId}")]
+        public IActionResult GetAssetInfo(int assetId)
+        {
+
+            _queueService.Enque(assetId);
+            return Ok("Id Added Successfully");
+        }
     }
+
 
 
 

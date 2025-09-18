@@ -27,6 +27,10 @@ namespace Asset_Management.Extensions
                 //user services
                 service.AddScoped<IUserRepository, UserRepository>();
                 service.AddScoped<IUserService, UserService>();
+
+                //background services
+                service.AddSingleton<IQueueService, QueueService>();
+                service.AddHostedService<CalculateBackgroundService>();
             }
             //else
             //{
