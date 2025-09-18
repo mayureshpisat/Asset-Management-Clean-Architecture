@@ -106,6 +106,14 @@ namespace Application.Services
             return user;
         }
 
+        public async Task<User> GetUserByEmail(string email)
+        {
+            var user = await _userRepository.GetUserByEmailAsync(email);
+            return user;
+        }
+
+
+
         private string GenerateToken(User user)
         {
             // Create claims

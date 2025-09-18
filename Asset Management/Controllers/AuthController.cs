@@ -137,94 +137,94 @@ namespace Asset_Management.Controllers
         }
 
 
-        //[HttpPost("ExternalLogin")]
-        //public async Task<IActionResult> ExternalLogin([FromBody] ExternalLoginDTO dto)
-        //{
+        [HttpPost("ExternalLogin")]
+        public async Task<IActionResult> ExternalLogin([FromBody] ExternalLoginDTO dto)
+        {
 
-        //    Console.WriteLine("Controller started");
-        //    if (string.IsNullOrEmpty(dto.IdToken))
-        //        return BadRequest("ID Token is required");
+            Console.WriteLine("Controller started");
+            if (string.IsNullOrEmpty(dto.IdToken))
+                return BadRequest("ID Token is required");
 
-        //    GoogleJsonWebSignature.Payload payload;
-        //    try
-        //    {
-        //        // Verify the Google ID token
-        //        payload = await GoogleJsonWebSignature.ValidateAsync(dto.IdToken);
-        //        // payload contains email, name, sub (Google user ID)
-
-                
-        //    }
-        //    catch
-        //    {
-        //        return Unauthorized("Invalid Google ID Token");
-        //    }
-
-        //    // Check if user already exists
-        //    var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Email == payload.Email);
+            GoogleJsonWebSignature.Payload payload;
+            try
+            {
+                // Verify the Google ID token
+                payload = await GoogleJsonWebSignature.ValidateAsync(dto.IdToken);
+                // payload contains email, name, sub (Google user ID)
 
 
-        //    if (user == null)
-        //    {
-        //        // Create new user
-        //        user = new User
-        //        {
-        //            Username = payload.Name ?? payload.Email.Split('@')[0],
-        //            Email = payload.Email,
-        //            Role = "Viewer",
-        //            PasswordHash = null,
-        //            CreatedAtUtc = DateTime.UtcNow
-        //        };
+            }
+            catch
+            {
+                return Unauthorized("Invalid Google ID Token");
+            }
 
-        //        _dbContext.Users.Add(user);
-        //        await _dbContext.SaveChangesAsync();
-        //    }
+            // Check if user already exists
+            var user = await _userService.GetUserByEmail(payload.Email);
 
-        //    // Generate claims for your custom JWT
-        //    var claims = new[]
-        //    {
-        //    new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-        //    new Claim(ClaimTypes.Name, user.Username),
-        //    new Claim(ClaimTypes.Role, user.Role)
-        //    };
 
-        //    // Generate JWT
-        //    var jwtSettings = _configuration.GetSection("Jwt");
-        //    var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings["Key"]));
-        //    var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+            if (user == null)
+            {
+                // Create new user
+                user = new User
+                {
+                    Username = payload.Name ?? payload.Email.Split('@')[0],
+                    Email = payload.Email,
+                    Role = "Viewer",
+                    PasswordHash = null,
+                    CreatedAtUtc = DateTime.UtcNow
+                };
 
-        //    var token = new JwtSecurityToken(
-        //        issuer: jwtSettings["Issuer"],
-        //        audience: jwtSettings["Audience"],
-        //        claims: claims,
-        //        expires: DateTime.UtcNow.AddMinutes(double.Parse(jwtSettings["ExpiresInMinutes"])),
-        //        signingCredentials: creds
-        //    );
+                _dbContext.Users.Add(user);
+                await _dbContext.SaveChangesAsync();
+            }
 
-        //    var tokenString = new JwtSecurityTokenHandler().WriteToken(token);
+            // Generate claims for your custom JWT
+            var claims = new[]
+            {
+            new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+            new Claim(ClaimTypes.Name, user.Username),
+            new Claim(ClaimTypes.Role, user.Role)
+            };
 
-        //    //Save the token to a Cookie for security
-        //    Response.Cookies.Append("token", tokenString, new CookieOptions
-        //    {
-        //        HttpOnly = true, //token can't be accessed with js
-        //        Secure = true,
-        //        SameSite = SameSiteMode.None,
-        //        Path = "/"
+            // Generate JWT
+            var jwtSettings = _configuration.GetSection("Jwt");
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings["Key"]));
+            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
-        //    });
+            var token = new JwtSecurityToken(
+                issuer: jwtSettings["Issuer"],
+                audience: jwtSettings["Audience"],
+                claims: claims,
+                expires: DateTime.UtcNow.AddMinutes(double.Parse(jwtSettings["ExpiresInMinutes"])),
+                signingCredentials: creds
+            );
 
-        //    // Return the token + user info to frontend
-        //    return Ok(new
-        //    {
-        //        Token = tokenString,
-        //        ExpiresAt = DateTime.UtcNow.AddMinutes(double.Parse(jwtSettings["ExpiresInMinutes"])),
-        //        User = new
-        //        {
-        //            id = user.Id,
-        //            username = user.Username,
-        //            role = user.Role
-        //        }
-        //    });
-        //}
+            var tokenString = new JwtSecurityTokenHandler().WriteToken(token);
+
+            //Save the token to a Cookie for security
+            Response.Cookies.Append("token", tokenString, new CookieOptions
+            {
+                HttpOnly = true, //token can't be accessed with js
+                Secure = true,
+                SameSite = SameSiteMode.None,
+                Path = "/"
+
+            });
+
+            // Return the token + user info to frontend
+            return Ok(new
+            {
+                Token = tokenString,
+                ExpiresAt = DateTime.UtcNow.AddMinutes(double.Parse(jwtSettings["ExpiresInMinutes"])),
+                User = new
+                {
+                    id = user.Id,
+                    username = user.Username,
+                    role = user.Role
+                }
+            });
+        }
 
 
 

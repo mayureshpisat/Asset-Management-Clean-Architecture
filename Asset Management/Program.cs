@@ -75,8 +75,7 @@ builder.Services.AddCors(options =>
 builder.Services.AddDbContext<AssetDbContext>(options =>
 options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-//register Signals Service
-builder.Services.AddScoped<ISignalsService, SignalsService>();
+
 
 //Adding (built-in) Middleware for RateLimiter 
 //builder.Services.AddRateLimiter(options =>

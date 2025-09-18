@@ -17,8 +17,10 @@ namespace Asset_Management.Extensions
                 service.AddScoped<IAssetHierarchyService, DbAssetHierarchyService>();
                 service.AddScoped<IAssetRepository, AssetRepository>();
                 service.AddScoped<ISignalRepository, SignalRepository>();
+                service.AddScoped<ISignalsService, SignalsService>();
                 //Notification service (singleton/ is stateless)
                 service.AddSingleton<INotificationService, NotificationService>();
+                service.AddScoped<INotificationStoreService, NotificationStoreService>();
                 //log service
                 service.AddScoped<IAssetLogService, AssetLogService>();
 

@@ -15,5 +15,7 @@ namespace Application.Interfaces
         Task<string> LoginUser(LoginDTO request);
 
         Task<User> GetUser(int userId);
+
+        Task<User> GetUserByEmail(string email);
     }
 }

@@ -1,0 +1,40 @@
+{
+  "id": 1,
+  "name": "Root",
+  "parentId": null,
+  "parent": null,
+  "children": [
+    {
+      "id": 2,
+      "name": "Machines",
+      "parentId": 1,
+      "children": [
+        {
+          "id": 3,
+          "name": "Lathe",
+          "parentId": 2,
+          "children": [
+            {
+              "id": 7,
+              "name": "Lathe Maintenance",
+              "parentId": 3,
+              "children": [
+                {
+                  "id": 11,
+                  "name": "Machineds Tooling",
+                  "parentId": 7,
+                  "children": [],
+                  "signals": []
+                }
+              ],
+              "signals": []
+            }
+          ],
+          "signals": []
+        }
+      ],
+      "signals": []
+    }
+  ],
+  "signals": []
+}

@@ -33,15 +33,17 @@ namespace Application.Services
         public readonly IAssetLogService _logService;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly INotificationService _notificationService;
+        private readonly INotificationStoreService _notificationStoreService;
         public static string notificationType = "Asset";
 
-        public DbAssetHierarchyService(INotificationService notificationService, IAssetStorageService storage, IAssetLogService logService,  IHttpContextAccessor httpContextAccessor, IAssetRepository assetRepository)
+        public DbAssetHierarchyService(INotificationService notificationService, IAssetStorageService storage, IAssetLogService logService,  IHttpContextAccessor httpContextAccessor, IAssetRepository assetRepository, INotificationStoreService notificationStoreService)
         {
             _storage = storage;
             _logService = logService;
             _httpContextAccessor = httpContextAccessor;
             _notificationService = notificationService;
             _assetRepository = assetRepository;
+            _notificationStoreService = notificationStoreService;
         }
 
 
@@ -288,8 +290,7 @@ namespace Application.Services
             await _notificationService.BroadcastToAdminsAndViewers(currentUserId, notification, notificationType);
 
             string notificationMessage = $"{GetCurrentUser()} deleted asset {name}";
-            //await SaveNotificationsForOfflineUsers(type: "AssetDeleted", notificationMessage, int.Parse(GetCurrentUserID()), GetCurrentUser());
-
+            await _notificationStoreService.SaveNotificationsForOfflineUsers(notificationType, notificationMessage, int.Parse(currentUserId), currentUser);
 
             return true;
         }

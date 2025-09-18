@@ -13,7 +13,15 @@
           "id": 3,
           "name": "Lathe",
           "parentId": 2,
-          "children": [],
+          "children": [
+            {
+              "id": 7,
+              "name": "Lathe Maintenance",
+              "parentId": 3,
+              "children": [],
+              "signals": []
+            }
+          ],
           "signals": []
         }
       ],
