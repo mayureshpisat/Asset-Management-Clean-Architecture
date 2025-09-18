@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Identity;
 
 namespace Application.Interfaces
 {
@@ -13,6 +14,11 @@ namespace Application.Interfaces
 
         Task<User> GetUserByNameAsync(string username);
         Task<User> GetUserByEmailAsync(string email);
+
+        Task<User> GetUserById(int userId);
+        Task AddUserAsync(User user);
+
+        Task SaveChangesAsync();
 
 
     }

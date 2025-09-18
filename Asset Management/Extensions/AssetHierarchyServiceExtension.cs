@@ -21,6 +21,10 @@ namespace Asset_Management.Extensions
                 service.AddSingleton<INotificationService, NotificationService>();
                 //log service
                 service.AddScoped<IAssetLogService, AssetLogService>();
+
+                //user services
+                service.AddScoped<IUserRepository, UserRepository>();
+                service.AddScoped<IUserService, UserService>();
             }
             //else
             //{

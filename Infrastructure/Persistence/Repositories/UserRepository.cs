@@ -1,11 +1,13 @@
 ﻿using Application.Interfaces;
 using Domain.Entities;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Identity;
 
 namespace Infrastructure.Persistence.Repositories
 {
@@ -17,13 +19,29 @@ namespace Infrastructure.Persistence.Repositories
             _dbContext = dbContext;
         }
 
-        Task<User> GetUserByNameAsync(string username)
+        public async Task<User> GetUserByNameAsync(string username)
         {
-            return null;
+            return await _dbContext.Users.FirstOrDefaultAsync(u => u.Username == username);
         }
-        Task<User> GetUserByEmailAsync(string email)
+        public async Task<User> GetUserByEmailAsync(string email)
         {
-            return null;
+            return await _dbContext.Users.FirstOrDefaultAsync(u => u.Email == email);
         }
+        public async Task<User> GetUserById(int userId)
+        {
+            return await _dbContext.Users.FirstOrDefaultAsync(u => u.Id == userId);
+        }
+
+
+        public async Task AddUserAsync(User user)
+        {
+            await _dbContext.Users.AddAsync(user);
+
+        }
+        public async Task SaveChangesAsync()
+        {
+            await _dbContext.SaveChangesAsync();
+        }
+
     }
 }

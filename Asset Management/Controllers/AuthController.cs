@@ -12,6 +12,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
+using Application.Interfaces;
 
 namespace Asset_Management.Controllers
 {
@@ -22,15 +23,17 @@ namespace Asset_Management.Controllers
         private readonly AssetDbContext _dbContext;
         private readonly IPasswordHasher<User> _passwordHasher;
         private readonly IConfiguration _configuration;
-        public AuthController(AssetDbContext dbContext, IPasswordHasher<User> passwordHasher, IConfiguration configuration)
+        private readonly IUserService _userService;
+        public AuthController(AssetDbContext dbContext, IPasswordHasher<User> passwordHasher, IConfiguration configuration, IUserService userService)
         {
             _dbContext = dbContext;
             _passwordHasher = passwordHasher;
             _configuration = configuration;
+            _userService = userService;
         }
 
         [HttpPost("Register")]
-        public IActionResult Register(RegisterDTO dto)
+        public async Task<IActionResult> Register(RegisterDTO dto)
         {
             if (ModelState.ContainsKey("Email"))
             {
@@ -44,90 +47,50 @@ namespace Asset_Management.Controllers
             {
                 return BadRequest("Username can only contain letters, numbers, hyphens (-), and underscores (_) (upto 30 characters)");
             }
-            //check if any user with similar username exists 
-            if (_dbContext.Users.Any(u => u.Username == dto.Username))
-                return BadRequest("Username already exists");
-
-            if (_dbContext.Users.Any(u => u.Email == dto.Email))
-                return BadRequest("User with same email already exist");
-
-            var user = new User
+            try
             {
-                Username = dto.Username,
-                Email = dto.Email,
-                Role = "Viewer",
-                CreatedAtUtc = DateTime.UtcNow
-            };
+                await _userService.RegisterUser(dto);
 
-            user.PasswordHash = _passwordHasher.HashPassword(user, dto.Password);
-
-            _dbContext.Users.Add(user);
-            _dbContext.SaveChanges();
+            }
+            catch (DbUpdateException)
+            {
+                return BadRequest("Database exception");
+            }
+            catch(Exception ex)
+            {
+                return BadRequest($"{ex.Message}");
+            }
 
             return Ok("User Registered");
         }
 
         [HttpPost("Login")]
-        public IActionResult Login(LoginDTO dto)
+        public async Task<IActionResult> Login(LoginDTO dto)
         {
-
-            //if (!ModelState.IsValid)
-            //    return BadRequest("Username can only contain letters, numbers, hyphens (-), and underscores (_) (upto 30 characters)");
-            // Find user by username
-            var user = _dbContext.Users.FirstOrDefault(u => u.Username == dto.Username);
-            if (user == null)
-                return Unauthorized("Invalid username or password");
-
-            // Verify password
-            var result = _passwordHasher.VerifyHashedPassword(user, user.PasswordHash, dto.Password);
-            if (result == PasswordVerificationResult.Failed)
-                return Unauthorized("Invalid username or password");
-
-            // Create claims
-            var claims = new[]
+            try
             {
-                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-                new Claim(ClaimTypes.Name, user.Username),
-                new Claim(ClaimTypes.Role, user.Role)
-    };
+                string tokenString = await _userService.LoginUser(dto);
 
-            //generate JWT 
-            var jwtSettings = _configuration.GetSection("Jwt"); //plain string 
-            //jwt sign in algos need a cryptographic key object 
-            //wrap key into a security key object that jwt can understand
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings["Key"]));
-            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256); //header {type: jwt, algo: SHA256)
+                //Save the token to a Cookie for security
+                Response.Cookies.Append("token", tokenString, new CookieOptions
+                {
+                    HttpOnly = true, //token can't be accessed with js
+                    Secure = true,
+                    SameSite = SameSiteMode.None,
+                    Path = "/"
 
-            var token = new JwtSecurityToken(
-                issuer: jwtSettings["Issuer"],
-                audience: jwtSettings["Audience"],
-                claims: claims,
-                expires: DateTime.UtcNow.AddMinutes(double.Parse(jwtSettings["ExpiresInMinutes"])),
-                signingCredentials: creds
-             );
-
-            var tokenString = new JwtSecurityTokenHandler().WriteToken(token); //generates a token based on the creds and encrypts the payload
-
-            //result = {Base64Url(Header)}.{Base64Url(Payload)}.{Base64Url(Signature)}
-            //Signature is generated when WriteToken takes algo type and key from the creds and uses SHA256(header.payload,key);
-
-
-            //Save the token to a Cookie for security
-            Response.Cookies.Append("token", tokenString, new CookieOptions
+                });
+            }
+            catch (DbUpdateException ex)
             {
-                HttpOnly = true, //token can't be accessed with js
-                Secure = true,
-                SameSite = SameSiteMode.None,
-                Path = "/"
-
-            });
-
-
-            return Ok(new
+            }
+            catch(Exception ex)
             {
-                Token = tokenString,
-                ExpiresAt = DateTime.UtcNow.AddMinutes(double.Parse(jwtSettings["ExpiresInMinutes"]))
-            });
+                return Unauthorized("Invalid Username or Password");
+            }
+
+
+            return Ok("User Login Successful");
 
 
         }
@@ -143,7 +106,7 @@ namespace Asset_Management.Controllers
                 return Unauthorized("User ID claim not found in token.");
 
             int userId = int.Parse(userClaim);
-            var user = _dbContext.Users.FirstOrDefault(u => u.Id == userId);
+            var user = await _userService.GetUser(userId);
             if (user == null)
                 return NotFound("User not found");
             Console.WriteLine("FROM GET USER INFO");

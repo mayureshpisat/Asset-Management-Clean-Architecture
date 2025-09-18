@@ -1,4 +1,5 @@
 ﻿using Application.DTO;
+using Domain.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,5 +12,8 @@ namespace Application.Interfaces
     {
         Task RegisterUser(RegisterDTO request);
 
+        Task<string> LoginUser(LoginDTO request);
+
+        Task<User> GetUser(int userId);
     }
 }
