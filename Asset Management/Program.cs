@@ -180,7 +180,7 @@ builder.Services.AddSignalR();
 var app = builder.Build();
 
 
-//  Call the seeder here
+//Call the seeder here
 //using (var scope = app.Services.CreateScope())
 //{
 //    var dbContext = scope.ServiceProvider.GetRequiredService<AssetDbContext>();

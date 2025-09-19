@@ -15,6 +15,7 @@ namespace Infrastructure.Services
 
         public void Enque(int assetId)
         {
+            Console.WriteLine($"{assetId} FROM QUEUE SERVICE");
             queue.Enqueue(assetId);
         }
 

@@ -349,6 +349,7 @@ namespace Asset_Management.Controllers
         }
 
         [HttpPost("GetAssetInfo/{assetId}")]
+        [Authorize]
         public IActionResult GetAssetInfo(int assetId)
         {
 

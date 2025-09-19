@@ -1,4 +1,5 @@
 ﻿using Domain.Entities;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,7 +10,6 @@ namespace Infrastructure.Persistence.Seeders
 {
     public static class AssetInfoSeeder
     {
-
         public static async Task SeedInfoAsync(AssetDbContext dbContext)
         {
             if (!dbContext.AssetInfos.Any())
@@ -20,8 +20,10 @@ namespace Infrastructure.Persistence.Seeders
                 {
                     if(dbContext.Assets.Any(a=>a.Id == i))
                     {
-                        for (int j = 1; j <= 1000; j++)
+
+                        for (int j = 1; j <= 10000; j++)
                         {
+
                             assetInfos.Add(new AssetInfo
                             {
                                 AssetId = i,
@@ -30,6 +32,7 @@ namespace Infrastructure.Persistence.Seeders
 
                             });
                         }
+
 
                     }
                 }

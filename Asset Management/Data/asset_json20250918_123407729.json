@@ -36,7 +36,7 @@
     },
     {
       "id": 14,
-      "name": "Electronic",
+      "name": "Electronics",
       "parentId": 1,
       "children": [
         {
@@ -50,28 +50,20 @@
               "parentId": 17,
               "children": [],
               "signals": []
+            },
+            {
+              "id": 22,
+              "name": "Pressure Sensors",
+              "parentId": 17,
+              "children": [],
+              "signals": []
             }
           ],
-          "signals": [
-            {
-              "id": 12,
-              "name": "new signal",
-              "valueType": "string",
-              "description": "",
-              "assetId": 17
-            }
-          ]
+          "signals": []
         },
         {
           "id": 18,
           "name": "Controllers",
-          "parentId": 14,
-          "children": [],
-          "signals": []
-        },
-        {
-          "id": 23,
-          "name": "new ",
           "parentId": 14,
           "children": [],
           "signals": []

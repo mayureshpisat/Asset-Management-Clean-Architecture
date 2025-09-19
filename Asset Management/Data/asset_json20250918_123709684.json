@@ -28,7 +28,15 @@
           "id": 16,
           "name": "CNC Milling",
           "parentId": 13,
-          "children": [],
+          "children": [
+            {
+              "id": 23,
+              "name": "new ",
+              "parentId": 16,
+              "children": [],
+              "signals": []
+            }
+          ],
           "signals": []
         }
       ],
@@ -50,6 +58,13 @@
               "parentId": 17,
               "children": [],
               "signals": []
+            },
+            {
+              "id": 22,
+              "name": "Pressure Sensors",
+              "parentId": 17,
+              "children": [],
+              "signals": []
             }
           ],
           "signals": [
@@ -65,13 +80,6 @@
         {
           "id": 18,
           "name": "Controllers",
-          "parentId": 14,
-          "children": [],
-          "signals": []
-        },
-        {
-          "id": 23,
-          "name": "new ",
           "parentId": 14,
           "children": [],
           "signals": []

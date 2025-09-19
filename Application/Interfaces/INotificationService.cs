@@ -6,5 +6,9 @@ namespace Application.Interfaces
     {
         Task BroadcastToAdminsAndViewers( string currentUserId,  AssetNotificationDTO notification, string? notificationType = null);
 
+        Task SendStatsToEveryone(double tempAvg, double powerAvg);
+
+
+
     }
 }

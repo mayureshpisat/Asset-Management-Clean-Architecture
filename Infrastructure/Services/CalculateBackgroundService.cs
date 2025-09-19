@@ -1,14 +1,8 @@
 ﻿using Application.Interfaces;
 using Infrastructure.Persistence;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Services
 {
@@ -17,7 +11,11 @@ namespace Infrastructure.Services
         private readonly INotificationService _notificationService;
         private readonly IQueueService _queueService;
         private readonly IServiceScopeFactory _serviceScopeFactory;
-        public CalculateBackgroundService(INotificationService notificationService, IQueueService queueService, IServiceScopeFactory serviceScopeFactory)
+
+        public CalculateBackgroundService(
+            INotificationService notificationService,
+            IQueueService queueService,
+            IServiceScopeFactory serviceScopeFactory)
         {
             _notificationService = notificationService;
             _queueService = queueService;
@@ -26,31 +24,62 @@ namespace Infrastructure.Services
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
+            Console.WriteLine("CalculateBackgroundService started");
+
             while (!stoppingToken.IsCancellationRequested)
             {
-                if (_queueService.TryDequeue(out int assetId))
+                try
                 {
-                    using var scope = _serviceScopeFactory.CreateScope();
-                    var dbContext = scope.ServiceProvider.GetRequiredService<AssetDbContext>();
+                    if (_queueService.TryDequeue(out int assetId))
+                    {
+                        using var scope = _serviceScopeFactory.CreateScope();
+                        var dbContext = scope.ServiceProvider.GetRequiredService<AssetDbContext>();
 
-                    var tempAvg = await dbContext.AssetInfos
-                        .Where(ai => ai.AssetId == assetId)
-                        .AverageAsync(ai => ai.Temperature, cancellationToken: stoppingToken);
+                        // Check if any records exist first
+                        var hasRecords = await dbContext.AssetInfos
+                            .Where(ai => ai.AssetId == assetId)
+                            .AnyAsync(stoppingToken);
 
-                    var powerAvg = await dbContext.AssetInfos
-                        .Where(ai => ai.AssetId == assetId)
-                        .AverageAsync(ai => ai.Power, cancellationToken: stoppingToken);
+                        if (!hasRecords)
+                        {
+                            Console.WriteLine($"No asset info found for AssetId: {assetId}");
+                            continue;
+                        }
 
-                    Console.WriteLine($"FROM BACKGROUND METHOD {tempAvg} avg temp and {powerAvg} avg power");
+                        double tempAvg = await dbContext.AssetInfos
+                            .Where(ai => ai.AssetId == assetId)
+                            .AverageAsync(ai => ai.Temperature, stoppingToken);
+
+                        double powerAvg = await dbContext.AssetInfos
+                            .Where(ai => ai.AssetId == assetId)
+                            .AverageAsync(ai => ai.Power, stoppingToken);
+
+                        await _notificationService.SendStatsToEveryone(tempAvg, powerAvg);
+
+                        // Send notification through SignalR
+                        //await _notificationService.SendCalculationResultAsync(assetId, tempAvg, powerAvg);
+                    }
+                    else
+                    {
+                        // No work → wait a little before retrying
+                        await Task.Delay(500, stoppingToken);
+                    }
                 }
-                else
+                catch (OperationCanceledException)
                 {
-                    // No work → wait a little before retrying
-                    await Task.Delay(500, stoppingToken);
+                    // Expected when cancellation is requested
+                    Console.WriteLine("CalculateBackgroundService cancellation requested");
+                    break;
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error processing background task: {ex.Message}");
+                    // Wait a bit before continuing to avoid tight error loops
+                    await Task.Delay(1000, stoppingToken);
                 }
             }
+
+            Console.WriteLine("CalculateBackgroundService stopped");
         }
-
     }
-
 }

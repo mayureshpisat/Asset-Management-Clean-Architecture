@@ -16,6 +16,8 @@ namespace Infrastructure.Services
         {
             _hubContext = hubContext;
         }
+
+        
         public async Task BroadcastToAdminsAndViewers( string currentUserId,  AssetNotificationDTO notification, string? notificationType = null)
         {
             var connectionIds = NotificationHub.GetConnections(currentUserId) ?? new List<string>();
@@ -70,9 +72,15 @@ namespace Infrastructure.Services
             
         }
 
+        public async Task SendStatsToEveryone(double tempAvg, double powerAvg)
+        {
+            await _hubContext.Clients.All.SendAsync("RecieveStatsNotification",tempAvg, powerAvg);
+        }
 
 
-        
+
+
+
 
         //private async Task SaveNotificationsForOfflineUsers(string type, string notificationMessage, int senderId, string senderName)
         //{

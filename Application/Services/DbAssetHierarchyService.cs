@@ -339,7 +339,7 @@ namespace Application.Services
                     NewName = newName,
                     Type = "AssetUpdated"
                 };
-                await _notificationService.BroadcastToAdminsAndViewers(currentUserId, notification);
+                await _notificationService.BroadcastToAdminsAndViewers(currentUserId, notification, notificationType);
 
                 string notificationMessage = $"{GetCurrentUser()} updated asset {oldName} to {newName}";
                 //await SaveNotificationsForOfflineUsers(type: "AssetUpdated", notificationMessage, int.Parse(GetCurrentUserID()), GetCurrentUser());
