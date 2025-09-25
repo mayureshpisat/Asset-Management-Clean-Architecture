@@ -43,5 +43,17 @@ namespace Infrastructure.Persistence.Repositories
             await _dbContext.SaveChangesAsync();
         }
 
+        public async Task<RefreshToken> GetRefreshToken(User user)
+        {
+            var refreshToken = await _dbContext.RefreshTokens.FirstOrDefaultAsync(r => r.UserId == user.Id);
+            return refreshToken;
+        }
+
+        public async Task SaveRefreshToken(RefreshToken refreshToken)
+        {
+            await _dbContext.RefreshTokens.AddAsync(refreshToken);
+        }
+
+
     }
 }

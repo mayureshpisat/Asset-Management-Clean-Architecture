@@ -12,7 +12,7 @@ namespace Application.Interfaces
     {
         Task RegisterUser(RegisterDTO request);
 
-        Task<string> LoginUser(LoginDTO request);
+        Task<List<string>> LoginUser(LoginDTO request);
 
         Task<User> GetUser(int userId);
 

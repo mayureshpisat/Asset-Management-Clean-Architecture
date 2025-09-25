@@ -20,6 +20,10 @@ namespace Application.Interfaces
 
         Task SaveChangesAsync();
 
+        Task<RefreshToken> GetRefreshToken(User user);
+
+        Task SaveRefreshToken(RefreshToken refreshToken);
+
 
     }
 }

@@ -28,6 +28,20 @@ namespace Application.Services
             _userRepository = userRepository;
             _configuration = configuration;
         }
+        private string GenerateRefreshToken(int length = 32)
+        {
+            if (length <= 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(length), "Length must be a positive value.");
+            }
+
+            byte[] randomNumber = new byte[length];
+            using (var rng = RandomNumberGenerator.Create())
+            {
+                rng.GetBytes(randomNumber);
+            }
+            return Convert.ToBase64String(randomNumber);
+        }
 
         public async Task RegisterUser(RegisterDTO request)
         {
@@ -74,7 +88,7 @@ namespace Application.Services
         }
 
 
-        public async Task<string> LoginUser(LoginDTO request)
+        public async Task<List<string>> LoginUser(LoginDTO request)
         {
             try
             {
@@ -87,8 +101,26 @@ namespace Application.Services
                 if (validatePassword == PasswordVerificationResult.Failed)
                     throw new Exception("Invalid Username or Password");
 
+                //refresh token for user
+                var refreshToken = await _userRepository.GetRefreshToken(user);
+                string token = "";
+                if(refreshToken == null)
+                {
+                    token = GenerateRefreshToken();
+                    refreshToken = new RefreshToken
+                    {
+                        User = user,
+                        Token = token,
+                        ExpiresAt = DateTime.UtcNow.AddDays(7),
+                        IsRevoked = false
+                    };
+                }
+                
+                await _userRepository.SaveRefreshToken(refreshToken);
+                await _userRepository.SaveChangesAsync();
+
                 string tokenString = GenerateToken(user);
-                return tokenString;
+                return new List<string> { tokenString, token};
             }
             catch(DbUpdateException ex)
             {

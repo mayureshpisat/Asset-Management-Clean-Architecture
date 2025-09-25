@@ -254,8 +254,8 @@ namespace Application.Services
             };
             await _notificationService.BroadcastToAdminsAndViewers(currentUserId, notification, notificationType);
 
-            //string notificationMessage = $"{username} added asset {assetName} to the root";
-            //await SaveNotificationsForOfflineUsers("AssetAdded", notificationMessage, int.Parse(GetCurrentUserID()), GetCurrentUser());
+            string notificationMessage = $"{currentUser} added asset {assetName} to the root";
+            await _notificationStoreService.SaveNotificationsForOfflineUsers(notificationType, notificationMessage, int.Parse(currentUserId), currentUser);
 
             return true;
         }
@@ -341,9 +341,8 @@ namespace Application.Services
                 };
                 await _notificationService.BroadcastToAdminsAndViewers(currentUserId, notification, notificationType);
 
-                string notificationMessage = $"{GetCurrentUser()} updated asset {oldName} to {newName}";
-                //await SaveNotificationsForOfflineUsers(type: "AssetUpdated", notificationMessage, int.Parse(GetCurrentUserID()), GetCurrentUser());
-
+                string notificationMessage = $"{currentUser} updated asset {oldName} to {newName}";
+                await _notificationStoreService.SaveNotificationsForOfflineUsers(notificationType, notificationMessage, int.Parse(currentUserId), currentUser);
 
 
                 return true;

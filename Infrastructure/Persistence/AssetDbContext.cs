@@ -24,6 +24,7 @@ namespace Infrastructure.Persistence
 
         public DbSet<AssetInfo> AssetInfos { get; set; }
 
+        public DbSet<RefreshToken> RefreshTokens { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());

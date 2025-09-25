@@ -69,10 +69,20 @@ namespace Asset_Management.Controllers
         {
             try
             {
-                string tokenString = await _userService.LoginUser(dto);
+                List<string> data = await _userService.LoginUser(dto);
 
                 //Save the token to a Cookie for security
-                Response.Cookies.Append("token", tokenString, new CookieOptions
+                Response.Cookies.Append("token", data[0], new CookieOptions
+                {
+                    HttpOnly = true, //token can't be accessed with js
+                    Secure = true,
+                    SameSite = SameSiteMode.None,
+                    Path = "/"
+
+                });
+
+                //Save the refresh token to a Cookie for security
+                Response.Cookies.Append("refresh_token", data[1], new CookieOptions
                 {
                     HttpOnly = true, //token can't be accessed with js
                     Secure = true,

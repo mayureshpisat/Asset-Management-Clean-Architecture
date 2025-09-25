@@ -3,18 +3,22 @@ using Application.Interfaces;
 using Domain.Entities;
 using Infrastructure.Hubs;
 using Infrastructure.Persistence;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
 namespace Infrastructure.Services
 {
     public class NotificationService : INotificationService
     {
         private readonly IHubContext<NotificationHub> _hubContext;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public NotificationService(IHubContext<NotificationHub> hubContext) 
+        public NotificationService(IHubContext<NotificationHub> hubContext, IHttpContextAccessor httpContextAccessor) 
         {
             _hubContext = hubContext;
+            _httpContextAccessor = httpContextAccessor;
         }
 
         
@@ -74,8 +78,9 @@ namespace Infrastructure.Services
 
         public async Task SendStatsToEveryone(double tempAvg, double powerAvg)
         {
-            await _hubContext.Clients.All.SendAsync("RecieveStatsNotification",tempAvg, powerAvg);
+            var currentUserConIds =  _hubContext.Clients.All.SendAsync("RecieveStatsNotification", tempAvg, powerAvg);
         }
+
 
 
 

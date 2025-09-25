@@ -181,11 +181,11 @@ var app = builder.Build();
 
 
 //Call the seeder here
-//using (var scope = app.Services.CreateScope())
-//{
-//    var dbContext = scope.ServiceProvider.GetRequiredService<AssetDbContext>();
-//    await DbSeeder.SeedAsync(dbContext);
-//}
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<AssetDbContext>();
+    await DbSeeder.SeedAsync(dbContext);
+}
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
