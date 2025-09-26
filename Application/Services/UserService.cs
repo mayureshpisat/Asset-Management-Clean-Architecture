@@ -116,8 +116,8 @@ namespace Application.Services
                     };
                 }
                 
-                await _userRepository.SaveRefreshToken(refreshToken);
-                await _userRepository.SaveChangesAsync();
+                //await _userRepository.SaveRefreshToken(refreshToken);
+                //await _userRepository.SaveChangesAsync();
 
                 string tokenString = GenerateToken(user);
                 return new List<string> { tokenString, token};

@@ -71,6 +71,8 @@ namespace Asset_Management.Controllers
             {
                 List<string> data = await _userService.LoginUser(dto);
 
+
+                Console.WriteLine($"FROM LOGIN token = {data[0]} and refresh token = {data[1]}");
                 //Save the token to a Cookie for security
                 Response.Cookies.Append("token", data[0], new CookieOptions
                 {
@@ -90,6 +92,9 @@ namespace Asset_Management.Controllers
                     Path = "/"
 
                 });
+
+                return Ok("User Login Successful");
+
             }
             catch (DbUpdateException ex)
             {
@@ -100,8 +105,7 @@ namespace Asset_Management.Controllers
             }
 
 
-            return Ok("User Login Successful");
-
+            return BadRequest("Login fail");
 
         }
 
