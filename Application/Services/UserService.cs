@@ -109,13 +109,13 @@ namespace Application.Services
                     token = GenerateRefreshToken();
                     refreshToken = new RefreshToken
                     {
-                        User = user,
+                        UserId = user.Id,
                         Token = token,
                         ExpiresAt = DateTime.UtcNow.AddDays(7),
                         IsRevoked = false
                     };
                 }
-                
+
                 //await _userRepository.SaveRefreshToken(refreshToken);
                 //await _userRepository.SaveChangesAsync();
 

@@ -167,7 +167,19 @@ var app = builder.Build();
 //Call the seeder here
 using (var scope = app.Services.CreateScope())
 {
+   
     var dbContext = scope.ServiceProvider.GetRequiredService<AssetDbContext>();
+
+    try
+    {
+        dbContext.Database.Migrate();
+
+    }
+    catch
+    (Exception ex)
+    { 
+        Console.WriteLine(ex.ToString());
+    }
     await DbSeeder.SeedAsync(dbContext);
 }
 
