@@ -173,6 +173,8 @@ using (var scope = app.Services.CreateScope())
     try
     {
         dbContext.Database.Migrate();
+        await DbSeeder.SeedAsync(dbContext);
+
 
     }
     catch
@@ -180,7 +182,6 @@ using (var scope = app.Services.CreateScope())
     { 
         Console.WriteLine(ex.ToString());
     }
-    await DbSeeder.SeedAsync(dbContext);
 }
 
 // Configure the HTTP request pipeline.

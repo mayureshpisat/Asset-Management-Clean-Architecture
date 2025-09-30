@@ -30,7 +30,7 @@ namespace Asset_Management.Extensions
 
                 //background services
                 service.AddSingleton<IQueueService, QueueService>();
-                service.AddHostedService<CalculateBackgroundService>();
+                //service.AddHostedService<CalculateBackgroundService>();
             }
             //else
             //{

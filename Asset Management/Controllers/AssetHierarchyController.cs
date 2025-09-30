@@ -31,8 +31,9 @@ namespace Asset_Management.Controllers
         private readonly IAssetStorageService _storage;
         private readonly IUploadLogService _uploadlog;
         private readonly IQueueService _queueService;
+        private readonly INotificationService _notificationService;
 
-        public AssetHierarchyController(IAssetHierarchyService service, IWebHostEnvironment env, IConfiguration configuration, IAssetStorageService storage, IUploadLogService uploadlog, IQueueService queueService)
+        public AssetHierarchyController(IAssetHierarchyService service, IWebHostEnvironment env, IConfiguration configuration, IAssetStorageService storage, IUploadLogService uploadlog, IQueueService queueService, INotificationService notificationService)
         {
             _service = service;
             _storage = storage;
@@ -40,6 +41,7 @@ namespace Asset_Management.Controllers
             _configuration = configuration;
             _uploadlog = uploadlog;
             _queueService = queueService;
+            _notificationService = notificationService;
         }
 
         
@@ -353,13 +355,22 @@ namespace Asset_Management.Controllers
         public IActionResult GetAssetInfo(int assetId)
         {
 
-            _queueService.Enque(assetId);
+            _queueService.Enqueue(assetId);
             return Ok("Id Added Successfully");
         }
+
+        [HttpPost("SendFromWorker")]
+        public async Task<IActionResult> SendFromWorker([FromBody] NotificationDto dto)
+        {
+            await _notificationService.SendStatsToEveryone(dto.Temperature, dto.Power);
+            return Ok("Background notification sent to everyone");
+        }
+
     }
+    public record NotificationDto(double Temperature, double Power);
 
 
 
 
-    
+
 }
