@@ -21,7 +21,7 @@ namespace Infrastructure.Services
         {
             var factory = new ConnectionFactory
             {
-                HostName = "localhost",
+                HostName = "rabbitmq",
                 UserName = "guest",
                 Password = "guest",
                 DispatchConsumersAsync = true

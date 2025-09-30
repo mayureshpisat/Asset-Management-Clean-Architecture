@@ -9,6 +9,7 @@ using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System;
 using System.Linq;
+using System.Net.Http.Json;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -18,21 +19,21 @@ namespace BackgroundCalculatorService
     public class Worker : BackgroundService
     {
         private readonly ILogger<Worker> _logger;
-        private readonly ApiNotificationService _apiNotificationService;
         private readonly IQueueService _queueService;
         private readonly IServiceScopeFactory _serviceScopeFactory;
         private AsyncEventingBasicConsumer _consumer;
+        private readonly HttpClient _httpClient;
 
         public Worker(
             ILogger<Worker> logger,
-            ApiNotificationService apiNotificationService,
             IQueueService queueService,
-            IServiceScopeFactory serviceScopeFactory)
+            IServiceScopeFactory serviceScopeFactory,
+            HttpClient httpClient)
         {
             _logger = logger;
-            _apiNotificationService = apiNotificationService;
             _queueService = queueService;
             _serviceScopeFactory = serviceScopeFactory;
+            _httpClient = httpClient;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -115,7 +116,9 @@ namespace BackgroundCalculatorService
                     .AverageAsync(ai => ai.Power, cancellationToken);
 
                 // Send stats to API endpoint (HTTP-based)
-                await _apiNotificationService.SendStatsToEveryone(tempAvg, powerAvg);
+                var apiUrl = Environment.GetEnvironmentVariable("ASSETAPI_URL");
+                var payload = new { Temperature = tempAvg, Power = powerAvg };
+                await _httpClient.PostAsJsonAsync(apiUrl, payload);
 
                 _logger.LogInformation(
                     "Successfully processed AssetId: {assetId} - TempAvg: {tempAvg}, PowerAvg: {powerAvg}",

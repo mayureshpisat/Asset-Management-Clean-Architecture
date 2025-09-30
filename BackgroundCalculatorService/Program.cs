@@ -20,11 +20,9 @@ builder.Services.AddSignalR();
 
 builder.Services.AddHostedService<Worker>();
 
+builder.Services.AddHttpClient();
 
-builder.Services.AddHttpClient<ApiNotificationService>().ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
-{
-    ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
-});
+
 builder.Services.AddSingleton<IQueueService, QueueService>();
 builder.Services.AddDbContext<AssetDbContext>(options =>
 {

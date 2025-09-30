@@ -26,8 +26,37 @@ services:
       - DB_PASSWORD=Mayuresh@123
     depends_on:
       - sqlserver
+      - rabbitmq
     volumes:
       - ./https:/https:ro
-      
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    hostname: my-rabbit
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    restart: always
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+
+  backgroundcalculator:
+    build:
+      context: .
+      dockerfile: BackgroundCalculatorService/Dockerfile
+    container_name: backgroundcalculator
+    depends_on:
+      - rabbitmq
+      - assetapi
+      - sqlserver
+    environment:
+      - ASSETAPI_URL=http://assetapi:8080/api/AssetHierarchy/SendFromWorker
+      - RABBITMQ_HOST=rabbitmq
+      - DB_USER=sa
+      - DB_PASSWORD=Mayuresh@123
+    restart: always
+
 volumes:
   sql_data: 

@@ -21,7 +21,7 @@ namespace Infrastructure.Services
         public async Task SendStatsToEveryone(double temp, double power)
         {
             var payload = new { Temperature = temp, Power = power };
-            await _httpClient.PostAsJsonAsync("https://localhost:7242/api/AssetHierarchy/SendFromWorker", payload);
+            //await _httpClient.PostAsJsonAsync("https://localhost:7242/api/AssetHierarchy/SendFromWorker", payload);
         }
     }
 }
