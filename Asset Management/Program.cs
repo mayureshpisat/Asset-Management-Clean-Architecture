@@ -26,6 +26,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Serilog config
 Log.Logger = new LoggerConfiguration()
+    .WriteTo.Console()
     .WriteTo.File("Logs/newly_merged_assets-.log", rollingInterval: RollingInterval.Day,
     outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj}{NewLine}{Exception}",
     buffered: false)
@@ -173,7 +174,6 @@ using (var scope = app.Services.CreateScope())
     try
     {
         dbContext.Database.Migrate();
-        await DbSeeder.SeedAsync(dbContext);
 
 
     }
@@ -182,6 +182,8 @@ using (var scope = app.Services.CreateScope())
     { 
         Console.WriteLine(ex.ToString());
     }
+    await DbSeeder.SeedAsync(dbContext);
+
 }
 
 // Configure the HTTP request pipeline.
@@ -192,7 +194,7 @@ if (app.Environment.IsDevelopment())
 }
 
 
-app.UseHttpsRedirection();
+//app.UseHttpsRedirection(); removed to listen http req from worker services as we sending data over http and we don't want it to mask it directly to http
 
 app.UseCors(MyAllowSpecificOrigins);
 

@@ -10,16 +10,19 @@ namespace Infrastructure.Persistence.Seeders
 {
     public static class AssetInfoSeeder
     {
+
         public static async Task SeedInfoAsync(AssetDbContext dbContext)
         {
             if (!dbContext.AssetInfos.Any())
             {
+                Console.WriteLine($"AssetInfoSeeder: Assetinfo not found");
                 List<AssetInfo> assetInfos = new List<AssetInfo>();
                 Random random = new Random();
                 for(int i =1; i<=25; i++)
                 {
                     if(dbContext.Assets.Any(a=>a.Id == i))
                     {
+                        Console.WriteLine($"AssetInfoSeeder: Asset with Id {i} found making 1000 for Asset {i}");
 
                         for (int j = 1; j <= 10000; j++)
                         {
@@ -32,6 +35,8 @@ namespace Infrastructure.Persistence.Seeders
 
                             });
                         }
+                        Console.WriteLine($"AssetInfoSeeder: Done for asset with Id {i}");
+
 
 
                     }
