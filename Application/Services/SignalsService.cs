@@ -8,6 +8,7 @@ using System.Security.Claims;
 using System.Runtime.InteropServices;
 using Microsoft.AspNetCore.Http;
 using System.Runtime.CompilerServices;
+using AutoMapper;
 
 namespace Application.Services
 {
@@ -24,15 +25,18 @@ namespace Application.Services
         private readonly INotificationService _notificationService;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly ISignalRepository _signalRepository;
+        public readonly IMapper _mapper;
         public static string notificationType = "Signal";
-        
-        public SignalsService(IAssetStorageService storage, IAssetLogService logger, IHttpContextAccessor httpContextAccessor, ISignalRepository signalRepository, INotificationService notificationService)
+
+
+        public SignalsService(IAssetStorageService storage, IAssetLogService logger, IHttpContextAccessor httpContextAccessor, ISignalRepository signalRepository, INotificationService notificationService, IMapper mapper)
         {
             _storage = storage;
             _logger = logger;
             _httpContextAccessor = httpContextAccessor;
             _signalRepository = signalRepository;
             _notificationService = notificationService;
+            _mapper = mapper;
         }
         
 
@@ -107,7 +111,10 @@ namespace Application.Services
             if (asset == null)
                 throw new Exception("Asset not found");
             string parentName = asset.Name;
-            asset.Signals.Add(new Signal { Name = signal.Name, ValueType = signal.ValueType, Description = signal.Description });
+
+            var signalToAdd = _mapper.Map<Signal>(signal);
+
+            asset.Signals.Add(signalToAdd);
             await _signalRepository.SaveChangesAsync();
             await SaveHierarchyVersion(action: "Add Signal");
             await _logger.Log(action, null, signal.Name);

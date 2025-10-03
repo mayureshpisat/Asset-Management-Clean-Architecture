@@ -21,9 +21,10 @@ namespace Infrastructure.Services
         {
             var factory = new ConnectionFactory
             {
-                HostName = "rabbitmq",
+                HostName = "localhost",
                 UserName = "guest",
                 Password = "guest",
+                Port = 5673, //AQMP port (15672) is the management UI port
                 DispatchConsumersAsync = true
             };
 

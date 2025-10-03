@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using System.Security.Cryptography;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
+using AutoMapper;
 
 
 namespace Application.Services
@@ -22,11 +23,14 @@ namespace Application.Services
         private readonly IPasswordHasher<User> _passwordHasher;
         private readonly IUserRepository _userRepository;
         private readonly IConfiguration _configuration;
-        public UserService(IPasswordHasher<User> passwordHasher, IUserRepository userRepository, IConfiguration configuration)
+        private readonly IMapper _mapper;
+
+        public UserService(IPasswordHasher<User> passwordHasher, IUserRepository userRepository, IConfiguration configuration, IMapper mapper)
         {
             _passwordHasher = passwordHasher;
             _userRepository = userRepository;
             _configuration = configuration;
+            _mapper = mapper;
         }
         private string GenerateRefreshToken(int length = 32)
         {
@@ -59,13 +63,15 @@ namespace Application.Services
                     throw new Exception("Email already exists");
 
                 }
-                var user = new User
-                {
-                    Username = request.Username,
-                    Email = request.Email,
-                    Role = "Viewer",
-                    CreatedAtUtc = DateTime.UtcNow
-                };
+                var user = _mapper.Map<User>(request);
+
+                //var user = new User
+                //{
+                //    Username = request.Username,
+                //    Email = request.Email,
+                //    Role = "Viewer",
+                //    CreatedAtUtc = DateTime.UtcNow
+                //};
 
                 user.PasswordHash = _passwordHasher.HashPassword(user, request.Password);
 

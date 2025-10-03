@@ -18,6 +18,11 @@ using Serilog.Formatting.Compact;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using AutoMapper;
+using Application.Mapping;
+using Microsoft.Extensions.DependencyInjection;
+
+
 
 
 var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
@@ -157,7 +162,7 @@ builder.Services.Configure<ApiBehaviorOptions>(options =>
     options.SuppressModelStateInvalidFilter = true;
 });
 
-
+builder.Services.AddAutoMapper(cfg=> { }, typeof(UserMapping).Assembly);
 
 
 //signal R DI
