@@ -1,10 +1,13 @@
 using Application.Interfaces;
+using Application.Mapping;
 using Application.Services;
 using Asset_Management.Extensions;
 using Asset_Management.Middleware;
+using AutoMapper;
 using Domain.Entities;
 using Infrastructure.Hubs;
 using Infrastructure.Persistence;
+using Infrastructure.Persistence.Repositories;
 using Infrastructure.Persistence.Seeders;
 using Infrastructure.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -12,15 +15,15 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using Serilog;
 using Serilog.Formatting.Compact;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using AutoMapper;
-using Application.Mapping;
-using Microsoft.Extensions.DependencyInjection;
+using Unity;
+using Unity.Lifetime;
 
 
 
@@ -96,9 +99,25 @@ options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnectio
 //    });
 //});
 
-//Hierarchy Management Service
-//builder.Services.AddTransient<IAssetHierarchyService,AssetHierarchyService>();
+
+//extension DI
 builder.Services.AddAssetHierarchyService(builder.Configuration);
+
+
+//DI through Unity Container 
+//var unitycontainer = new UnityContainer();
+//unitycontainer.RegisterType<IAssetHierarchyService, DbAssetHierarchyService>();
+//unitycontainer.RegisterType<IAssetRepository, AssetRepository>();
+//unitycontainer.RegisterType<ISignalRepository, SignalRepository>();
+//unitycontainer.RegisterType<ISignalsService, SignalsService>();
+//unitycontainer.RegisterSingleton<INotificationService, NotificationService>();
+//unitycontainer.RegisterType<INotificationStoreService, NotificationStoreService>();
+//unitycontainer.RegisterType<IAssetLogService, AssetLogService>();
+//unitycontainer.RegisterType<IUserRepository, UserRepository>();
+//unitycontainer.RegisterType<IUserService, UserService>();
+//unitycontainer.RegisterSingleton<IQueueService, QueueService>();
+
+
 
 
 //Import Log service
