@@ -78,8 +78,10 @@ namespace Infrastructure.Services
 
         public async Task SendStatsToEveryone(double tempAvg, double powerAvg)
         {
-            var currentUserConIds =  _hubContext.Clients.All.SendAsync("RecieveStatsNotification", tempAvg, powerAvg);
+            await _hubContext.Clients.All.SendAsync("RecieveStatsNotification", tempAvg, powerAvg);
+
         }
+
 
 
 
